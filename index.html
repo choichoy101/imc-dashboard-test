@@ -55,11 +55,12 @@ function updateFirebaseStatus(ok, msg) {
 // ── 전체 데이터 로드 ──
 async function loadAllFromFirebase() {
   try {
-    const [promosSnap, creatorsSnap, productsSnap, budgetsSnap] = await Promise.all([
+    const [promosSnap, creatorsSnap, productsSnap, budgetsSnap, settingsSnap] = await Promise.all([
       getDocs(collection(db, 'promos')),
       getDocs(collection(db, 'creators')),
       getDocs(collection(db, 'products')),
       getDocs(collection(db, 'budgets')),
+      getDocs(collection(db, 'settings')),
     ]);
     if (!promosSnap.empty) {
       window.promos = promosSnap.docs.map(d => ({_id: d.id, ...d.data()})).sort((a,b)=>a._order-b._order);
@@ -74,6 +75,52 @@ async function loadAllFromFirebase() {
       budgetsSnap.docs.forEach(d => {
         if(d.id==='memos'){window.budgetMemos=d.data()||{};}
         else{const mi=parseInt(d.id);if(mi>=0&&mi<12)window.budgets[mi]=d.data().values||[0,0,0,0,0];}
+      });
+    }
+    // ── 시트 URL 복원 (settings 컬렉션) ──
+    if (!settingsSnap.empty) {
+      settingsSnap.docs.forEach(d => {
+        const data = d.data();
+        if (d.id === 'sheetUrls') {
+          // Item 시트 URL 복원
+          if (data.itemSheetUrl) {
+            window.itemSheetUrl = data.itemSheetUrl;
+            const el = document.getElementById('item-sheet-url');
+            if (el) el.value = data.itemSheetUrl;
+            const btn = document.getElementById('item-sheet-refresh');
+            if (btn) btn.style.display = 'inline-block';
+          }
+          // Meta 시트 URL 복원
+          if (data.metaUrlAd) {
+            window.metaSheetUrlAd = data.metaUrlAd;
+            const el = document.getElementById('meta-url-ad');
+            if (el) el.value = data.metaUrlAd;
+          }
+          if (data.metaUrlAdp) {
+            window.metaSheetUrlAdp = data.metaUrlAdp;
+            const el = document.getElementById('meta-url-adp');
+            if (el) el.value = data.metaUrlAdp;
+          }
+          if (data.metaUrlSales) {
+            window.metaSheetUrlSales = data.metaUrlSales;
+            const el = document.getElementById('meta-url-sales');
+            if (el) el.value = data.metaUrlSales;
+            const btn = document.getElementById('meta-sheet-refresh');
+            if (btn) btn.style.display = 'inline-block';
+          }
+          // ── Meta 시트 URL 3개 모두 있으면 자동으로 데이터 로드 ──
+          if (data.metaUrlAd && data.metaUrlAdp && data.metaUrlSales) {
+            setTimeout(() => {
+              window.loadMetaFromSheets && window.loadMetaFromSheets();
+            }, 800);
+          }
+          // ── Item 시트 URL 있으면 자동으로 새로고침 ──
+          if (data.itemSheetUrl) {
+            setTimeout(() => {
+              window.refreshItemFromSheet && window.refreshItemFromSheet();
+            }, 1000);
+          }
+        }
       });
     }
     // 렌더 갱신
@@ -92,7 +139,12 @@ async function loadAllFromFirebase() {
 function setupRealtimeListeners() {
   // 크리에이터 실시간 동기화
   onSnapshot(collection(db, 'creators'), snap => {
-    window.creators = snap.docs.map(d => ({_id: d.id, ...d.data()})).sort((a,b)=>a._order-b._order);
+    window.creators = snap.docs.map(d => {
+      const data = d.data();
+      // _fbData가 없으면 빈 객체로 초기화
+      if (!data._fbData) data._fbData = {};
+      return {_id: d.id, ...data};
+    }).sort((a,b)=>a._order-b._order);
     window.applyListFilter && window.applyListFilter();
     window.buildCal && window.buildCal();
     window.updateSummary && window.updateSummary();
@@ -118,6 +170,21 @@ window.fbSave = async function(collName, id, data) {
   } catch(e) { console.error('저장 실패:', e); }
 };
 
+// ── 시트 URL Firebase 저장 ──
+window.fbSaveSheetUrls = async function() {
+  if (!isFirebaseReady) return;
+  try {
+    await setDoc(doc(db, 'settings', 'sheetUrls'), {
+      itemSheetUrl: window.itemSheetUrl || '',
+      metaUrlAd: window.metaSheetUrlAd || '',
+      metaUrlAdp: window.metaSheetUrlAdp || '',
+      metaUrlSales: window.metaSheetUrlSales || '',
+      updatedAt: new Date().toISOString(),
+    });
+    console.log('시트 URL Firebase 저장 완료');
+  } catch(e) { console.error('시트 URL 저장 실패:', e); }
+};
+
 window.fbDelete = async function(collName, id) {
   if (!isFirebaseReady) return;
   try {
@@ -128,10 +195,18 @@ window.fbDelete = async function(collName, id) {
 window.fbSaveBatch = async function(collName, items) {
   if (!isFirebaseReady) return;
   try {
+    // 기존 문서 모두 가져와서 삭제 후 새로 저장 (ID 충돌 방지)
+    const existing = await getDocs(collection(db, collName));
     const batch = writeBatch(db);
+    // 기존 문서 삭제
+    existing.docs.forEach(d => {
+      batch.delete(doc(db, collName, d.id));
+    });
+    // 새 문서 저장 (_id 없으면 genId로 생성)
     items.forEach((item, i) => {
-      const ref = doc(db, collName, item._id || `${collName}_${Date.now()}_${i}`);
-      batch.set(ref, {...item, _order: i});
+      const id = item._id || (collName + '_' + String(Date.now()) + '_' + i);
+      const ref = doc(db, collName, id);
+      batch.set(ref, {...item, _id: id, _order: i});
     });
     await batch.commit();
   } catch(e) { console.error('배치 저장 실패:', e); }
@@ -726,6 +801,7 @@ function fbSavePromos(){
 }
 function fbSaveCreators(){
   showSaving();
+  // _fbData 포함해서 저장 (Feedback 탭 입력값)
   if(window.fbSaveBatch) window.fbSaveBatch('creators', window.creators);
 }
 function fbSaveProducts(){
@@ -1535,7 +1611,7 @@ let itemSheetUrl='';
 function toggleItemSheet(){const c=document.getElementById('item-sheet-content'),b=document.getElementById('item-sheet-toggle');if(!c||!b)return;const h=c.style.display==='none';c.style.display=h?'block':'none';b.textContent=h?'접기':'펼치기';}
 function setItemSheetStatus(msg,type){const el=document.getElementById('item-sheet-status');if(!el)return;const bgs={ok:'#EAF3DE',error:'#FCEBEB',loading:'var(--color-background-secondary)'};const colors={ok:'#3B6D11',error:'#A32D2D',loading:'var(--color-text-secondary)'};el.style.cssText='font-size:11px;padding:5px 9px;border-radius:5px;background:'+(bgs[type]||bgs.loading)+';color:'+(colors[type]||colors.loading)+';';el.textContent=msg;}
 function parseSheetCSV(text){const lines=text.trim().split('\n');if(lines.length<2)return[];return lines.slice(1).map(line=>{const vals=[];let cur='',inQ=false;for(const c of line){if(c==='"'){inQ=!inQ;}else if(c===','&&!inQ){vals.push(cur.trim().replace(/^"|"$/g,''));cur='';}else cur+=c;}vals.push(cur.trim().replace(/^"|"$/g,''));return vals;}).filter(v=>v.some(x=>x));}
-async function loadItemFromSheet(){const url=document.getElementById('item-sheet-url')?.value?.trim();if(!url){setItemSheetStatus('URL을 입력해주세요.','error');return;}itemSheetUrl=url;setItemSheetStatus('불러오는 중...','loading');try{const res=await fetch(url);if(!res.ok)throw new Error('URL에 접근할 수 없어요.');const rows=parseSheetCSV(await res.text());if(!rows.length)throw new Error('데이터가 없어요.');window.products=rows.map((v,i)=>({_id:genId(),_order:i,platform:v[0]||'무신사',uid:v[1]||'',code:v[2]||'',name:v[3]||'',tag1:v[4]||'',tag2:v[5]||'',tag3:v[6]||'',tag4:v[7]||'',tag5:v[8]||''}));fbSaveProducts();window.renderProducts();localStorage.setItem('item_sheet_url',url);const btn=document.getElementById('item-sheet-refresh');if(btn)btn.style.display='inline-block';setItemSheetStatus('✅ '+rows.length+'개 불러오기 완료!','ok');}catch(e){setItemSheetStatus('❌ '+e.message,'error');}}
+async function loadItemFromSheet(){const url=document.getElementById('item-sheet-url')?.value?.trim();if(!url){setItemSheetStatus('URL을 입력해주세요.','error');return;}itemSheetUrl=url;setItemSheetStatus('불러오는 중...','loading');try{const res=await fetch(url);if(!res.ok)throw new Error('URL에 접근할 수 없어요.');const rows=parseSheetCSV(await res.text());if(!rows.length)throw new Error('데이터가 없어요.');window.products=rows.map((v,i)=>({_id:genId(),_order:i,platform:v[0]||'무신사',uid:v[1]||'',code:v[2]||'',name:v[3]||'',tag1:v[4]||'',tag2:v[5]||'',tag3:v[6]||'',tag4:v[7]||'',tag5:v[8]||''}));fbSaveProducts();window.renderProducts();window.itemSheetUrl=url;localStorage.setItem('item_sheet_url',url);window.fbSaveSheetUrls&&window.fbSaveSheetUrls();const btn=document.getElementById('item-sheet-refresh');if(btn)btn.style.display='inline-block';setItemSheetStatus('✅ '+rows.length+'개 불러오기 완료! (팀 전체에 공유됨)','ok');}catch(e){setItemSheetStatus('❌ '+e.message,'error');}}
 async function refreshItemFromSheet(){const url=itemSheetUrl||localStorage.getItem('item_sheet_url')||'';if(!url){setItemSheetStatus('URL을 먼저 입력하세요.','error');return;}setItemSheetStatus('새로고침 중...','loading');try{const res=await fetch(url);const rows=parseSheetCSV(await res.text());if(!rows.length)throw new Error('데이터가 없어요.');window.products=rows.map((v,i)=>({_id:genId(),_order:i,platform:v[0]||'무신사',uid:v[1]||'',code:v[2]||'',name:v[3]||'',tag1:v[4]||'',tag2:v[5]||'',tag3:v[6]||'',tag4:v[7]||'',tag5:v[8]||''}));fbSaveProducts();window.renderProducts();setItemSheetStatus('✅ 새로고침 완료!','ok');}catch(e){setItemSheetStatus('❌ '+e.message,'error');}}
 
 /* ══ Meta 시트 연동 ══ */
@@ -1543,7 +1619,7 @@ let metaRawAd=[],metaRawAdP=[],metaRawSales=[],metaSheetUrlAd='',metaSheetUrlAdp
 function toggleMetaSheet(){const c=document.getElementById('meta-sheet-content'),b=document.getElementById('meta-sheet-toggle');if(!c||!b)return;const h=c.style.display==='none';c.style.display=h?'block':'none';b.textContent=h?'접기':'펼치기';}
 function setMetaSheetStatus(msg,type){const el=document.getElementById('meta-sheet-status');if(!el)return;const bgs={ok:'#EAF3DE',error:'#FCEBEB',loading:'var(--color-background-secondary)'};const colors={ok:'#3B6D11',error:'#A32D2D',loading:'var(--color-text-secondary)'};el.style.cssText='font-size:11px;padding:5px 9px;border-radius:5px;background:'+(bgs[type]||bgs.loading)+';color:'+(colors[type]||colors.loading)+';';el.textContent=msg;}
 function parseMetaCSV(text){const lines=text.trim().split('\n');if(lines.length<2)return[];const headers=lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));return lines.slice(1).map(line=>{const vals=[];let cur='',inQ=false;for(const c of line){if(c==='"'){inQ=!inQ;}else if(c===','&&!inQ){vals.push(cur.trim());cur='';}else cur+=c;}vals.push(cur.trim());const obj={};headers.forEach((h,i)=>{obj[h]=(vals[i]||'').replace(/^"|"$/g,'');});return obj;}).filter(r=>r['날짜']&&/\d{4}-\d{2}-\d{2}/.test(r['날짜']));}
-async function loadMetaFromSheets(){const u1=document.getElementById('meta-url-ad')?.value?.trim(),u2=document.getElementById('meta-url-adp')?.value?.trim(),u3=document.getElementById('meta-url-sales')?.value?.trim();if(!u1||!u2||!u3){setMetaSheetStatus('❌ URL 3개를 모두 입력해주세요.','error');return;}setMetaSheetStatus('불러오는 중...','loading');try{const[r1,r2,r3]=await Promise.all([fetch(u1),fetch(u2),fetch(u3)]);const[t1,t2,t3]=await Promise.all([r1.text(),r2.text(),r3.text()]);metaRawAd=parseMetaCSV(t1);metaRawAdP=parseMetaCSV(t2);metaRawSales=parseMetaCSV(t3);if(!metaRawAd.length)throw new Error('광고데이터 시트가 비어있어요.');metaSheetUrlAd=u1;metaSheetUrlAdp=u2;metaSheetUrlSales=u3;localStorage.setItem('meta_url_ad',u1);localStorage.setItem('meta_url_adp',u2);localStorage.setItem('meta_url_sales',u3);buildMetaBrandTabs();const months=[...new Set(metaRawAd.map(r=>r['날짜'].slice(0,7)))].sort();if(months.length)mMonth=months[months.length-1];mBuildMonthTabsFromData(months);mResetFilter();const btn=document.getElementById('meta-sheet-refresh');if(btn)btn.style.display='inline-block';setMetaSheetStatus('✅ 연동 완료!','ok');}catch(e){setMetaSheetStatus('❌ '+e.message,'error');}}
+async function loadMetaFromSheets(){const u1=document.getElementById('meta-url-ad')?.value?.trim(),u2=document.getElementById('meta-url-adp')?.value?.trim(),u3=document.getElementById('meta-url-sales')?.value?.trim();if(!u1||!u2||!u3){setMetaSheetStatus('❌ URL 3개를 모두 입력해주세요.','error');return;}setMetaSheetStatus('불러오는 중...','loading');try{const[r1,r2,r3]=await Promise.all([fetch(u1),fetch(u2),fetch(u3)]);const[t1,t2,t3]=await Promise.all([r1.text(),r2.text(),r3.text()]);metaRawAd=parseMetaCSV(t1);metaRawAdP=parseMetaCSV(t2);metaRawSales=parseMetaCSV(t3);if(!metaRawAd.length)throw new Error('광고데이터 시트가 비어있어요.');metaSheetUrlAd=u1;metaSheetUrlAdp=u2;metaSheetUrlSales=u3;window.metaSheetUrlAd=u1;window.metaSheetUrlAdp=u2;window.metaSheetUrlSales=u3;localStorage.setItem('meta_url_ad',u1);localStorage.setItem('meta_url_adp',u2);localStorage.setItem('meta_url_sales',u3);window.fbSaveSheetUrls&&window.fbSaveSheetUrls();buildMetaBrandTabs();const months=[...new Set(metaRawAd.map(r=>r['날짜'].slice(0,7)))].sort();if(months.length)mMonth=months[months.length-1];mBuildMonthTabsFromData(months);mResetFilter();const btn=document.getElementById('meta-sheet-refresh');if(btn)btn.style.display='inline-block';setMetaSheetStatus('✅ 연동 완료!','ok');}catch(e){setMetaSheetStatus('❌ '+e.message,'error');}}
 async function refreshMetaFromSheets(){if(!metaSheetUrlAd)return;setMetaSheetStatus('새로고침 중...','loading');try{const[r1,r2,r3]=await Promise.all([fetch(metaSheetUrlAd),fetch(metaSheetUrlAdp),fetch(metaSheetUrlSales)]);const[t1,t2,t3]=await Promise.all([r1.text(),r2.text(),r3.text()]);metaRawAd=parseMetaCSV(t1);metaRawAdP=parseMetaCSV(t2);metaRawSales=parseMetaCSV(t3);mRender();setMetaSheetStatus('✅ 새로고침 완료!','ok');}catch(e){setMetaSheetStatus('❌ '+e.message,'error');}}
 function buildMetaBrandTabs(){const brands=[...new Set(metaRawAd.map(r=>r['브랜드']))].filter(Boolean);const bt=document.getElementById('meta-brand-tabs');if(!bt)return;bt.innerHTML='';brands.forEach((b,i)=>{const el=document.createElement('div');el.className='brand-tab'+(i===0?' active':'');el.textContent=b;el.onclick=()=>{mBrand=b;document.querySelectorAll('#meta-brand-tabs .brand-tab').forEach(x=>x.classList.remove('active'));el.classList.add('active');mResetFilter();};bt.appendChild(el);});if(brands.length)mBrand=brands[0];}
 function mBuildMonthTabsFromData(months){const row=document.getElementById('m-month-row');if(!row)return;row.innerHTML='';months.forEach(m=>{const[,mo]=m.split('-');const el=document.createElement('div');el.className='month-tab'+(m===mMonth?' active':'');el.textContent=parseInt(mo)+'월';el.onclick=()=>{mMonth=m;document.querySelectorAll('#m-month-row .month-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');mFrom=mMonthStart();mTo=mMonthEnd();mSyncInputs();mBuildWeekChips();document.querySelectorAll('#pg-meta .range-chip').forEach((c,i)=>c.classList.toggle('active',i===0));mRender();};row.appendChild(el);});}
@@ -1618,9 +1694,29 @@ window.fmtWon2=fmtWon2;
 window.renderModalItems=renderModalItems;
 buildTabs();buildFilters();buildBudgetHeader();
 applyPromoFilter();applyListFilter();renderBudget();renderProducts();buildMonthQuickBtns();buildCal();
+// 시트 URL 복원 — Firebase 연결 시 loadAllFromFirebase()에서 자동 복원
+// Firebase 미연결 시 localStorage fallback
 (function(){
-  const saved=localStorage.getItem('item_sheet_url');
-  if(saved){const el=document.getElementById('item-sheet-url');if(el){el.value=saved;window.itemSheetUrl=saved;}const btn=document.getElementById('item-sheet-refresh');if(btn)btn.style.display='inline-block';}
+  if(!window.itemSheetUrl){
+    const saved=localStorage.getItem('item_sheet_url');
+    if(saved){
+      const el=document.getElementById('item-sheet-url');
+      if(el){el.value=saved;window.itemSheetUrl=saved;}
+      const btn=document.getElementById('item-sheet-refresh');
+      if(btn)btn.style.display='inline-block';
+    }
+  }
+  if(!window.metaSheetUrlAd){
+    const sa=localStorage.getItem('meta_url_ad');
+    const sb=localStorage.getItem('meta_url_adp');
+    const sc=localStorage.getItem('meta_url_sales');
+    if(sa){const el=document.getElementById('meta-url-ad');if(el)el.value=sa;window.metaSheetUrlAd=sa;}
+    if(sb){const el=document.getElementById('meta-url-adp');if(el)el.value=sb;window.metaSheetUrlAdp=sb;}
+    if(sc){
+      const el=document.getElementById('meta-url-sales');if(el)el.value=sc;window.metaSheetUrlSales=sc;
+      const btn=document.getElementById('meta-sheet-refresh');if(btn)btn.style.display='inline-block';
+    }
+  }
 })();
 } // runInit 끝
 
