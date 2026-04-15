@@ -657,7 +657,6 @@ tr:hover td{background:var(--color-background-secondary);}
   s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js';
   s.onload=()=>initApp();
   s.onerror=()=>{
-    // fallback URL
     const s2=document.createElement('script');
     s2.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
     s2.onload=()=>initApp();
@@ -763,7 +762,7 @@ function iSel(opts,val,cb,withEmpty){
 }
 
 /* ══ 요약 ══ */
-function getMonthBudget(m){return(window.budgets[m]||[]).reduce((s,v)=>s+v,0)*10000;}
+function getMonthBudget(m){return(window.budgets[m]||[]).reduce((s,v)=>s+(v||0),0);}
 function getTotalCostForMonth(m){return window.creators.filter(r=>dMonth(r.uploadDate)===m+1).reduce((s,r)=>{const b=(r.cost1||0)+(r.cost2||0);return s+(r.payType==='사업자'?Math.round(b*1.1):b);},0);}
 function getWeekUpload(){const now=new Date();const day=now.getDay();const mon=new Date(now);mon.setDate(now.getDate()-(day===0?6:day-1));const sun=new Date(mon);sun.setDate(mon.getDate()+6);return window.creators.filter(r=>{if(!r.uploadDate)return false;const d=new Date(r.uploadDate);return d>=mon&&d<=sun;}).length;}
 window.updateSummary=function(){const b=getMonthBudget(curM),c=getTotalCostForMonth(curM);document.getElementById('ms-budget').textContent=fmtWon(b);document.getElementById('ms-cost').textContent=fmtWon(c);document.getElementById('ms-remain').textContent=fmtWon(b-c);document.getElementById('ms-week').textContent=getWeekUpload()+'건';};
@@ -1055,12 +1054,12 @@ window.renderBudget=function(){
   document.getElementById('budget-body').innerHTML=Array.from({length:12},(_,mi)=>{
     const vals=window.budgets[mi]||[0,0,0,0,0];
     const tot=vals.reduce((s,v)=>s+(v||0),0);
-    const totWon=tot?'₩'+Math.round(tot*10000).toLocaleString('ko-KR'):'-';
+    // 총예산 회계단위 표시
+    const totWon=tot?'₩'+Math.round(tot).toLocaleString('ko-KR'):'₩0';
     const totColor=tot?'var(--color-text-primary)':'var(--color-text-tertiary)';
     let row='<tr><td style="font-weight:500;color:var(--color-text-primary);">'+(mi+1)+'월</td>';
     BROWS.forEach((r,ri)=>{
       const val=vals[ri]||0;
-      const dispVal=val?'₩'+Math.round(val*10000).toLocaleString('ko-KR'):'-';
       const memoKey=mi+'_'+ri;
       const memo=(window.budgetMemos[memoKey]||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
       const hasMemo=memo.trim()!=='';
@@ -1068,9 +1067,8 @@ window.renderBudget=function(){
       const memoIcon='<span class="budget-memo-icon" onclick="budgetEditMemo('+mi+','+ri+')" title="메모 추가/수정">'+(hasMemo?'📝':'+')+'</span>';
       row+='<td style="position:relative;">'
         +'<div class="budget-memo-wrap">'
-        +'<input type="text" value="'+dispVal+'" style="text-align:right;width:100%;padding-right:16px;"'
-        +' onfocus="this.value='+(val||0)+';"'
-        +' onblur="const v=Number(this.value)||0;if(!window.budgets['+mi+'])window.budgets['+mi+']=[];window.budgets['+mi+']['+ri+']=v;fbSaveBudgetRow('+mi+');window.renderBudget();window.updateSummary();">'
+        +'<input type="number" value="'+val+'" min="0" style="text-align:right;width:100%;padding-right:16px;"'
+        +' onchange="if(!window.budgets['+mi+'])window.budgets['+mi+']=[];window.budgets['+mi+']['+ri+']=Number(this.value)||0;fbSaveBudgetRow('+mi+');window.renderBudget();window.updateSummary();">'
         +memoIcon
         +tooltipHtml
         +'</div></td>';
@@ -1401,6 +1399,46 @@ applyPromoFilter();applyListFilter();renderBudget();renderProducts();buildMonthQ
     if(btn)btn.style.display='inline-block';
   }
 })();
+
+/* ══ HTML onclick에서 접근 가능하도록 전역 노출 ══ */
+window.addPromo=addPromo;
+window.addCreator=addCreator;
+window.addProduct=addProduct;
+window.addModalItem=addModalItem;
+window.openModal=openModal;
+window.closeModal=closeModal;
+window.saveModal=saveModal;
+window.changeMonth=changeMonth;
+window.switchMain=switchMain;
+window.applyPromoFilter=applyPromoFilter;
+window.applyListFilter=applyListFilter;
+window.applyFeedbackFilter=applyFeedbackFilter;
+window.fbEditUploadLink=fbEditUploadLink;
+window.budgetEditMemo=budgetEditMemo;
+window.mSetBrand=mSetBrand;
+window.mSetPlatform=mSetPlatform;
+window.mSetQuick=mSetQuick;
+window.mOnDateChange=mOnDateChange;
+window.mSetProductTab=mSetProductTab;
+window.loadItemFromSheet=loadItemFromSheet;
+window.refreshItemFromSheet=refreshItemFromSheet;
+window.toggleItemSheet=toggleItemSheet;
+window.loadMetaFromSheets=loadMetaFromSheets;
+window.refreshMetaFromSheets=refreshMetaFromSheets;
+window.toggleMetaSheet=toggleMetaSheet;
+window.fmtCost=fmtCost;
+window.fmtNum=fmtNum;
+window.fmtWon2=fmtWon2;
+window.autoFill=autoFill;
+window.autoFillModal=autoFillModal;
+window.fbSavePromos=fbSavePromos;
+window.fbSaveCreators=fbSaveCreators;
+window.fbSaveProducts=fbSaveProducts;
+window.fbSaveBudgetRow=fbSaveBudgetRow;
+window.iSel=iSel;
+window.renderModalItems=renderModalItems;
+window.toggleSetupPanel=toggleSetupPanel;
+window.setProductTab=typeof setProductTab!=='undefined'?setProductTab:function(){};
 } // initApp 끝
 </script>
 </body>
