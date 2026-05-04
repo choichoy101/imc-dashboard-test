@@ -852,6 +852,8 @@ td.dc-td{padding:0!important;vertical-align:middle;}
           <th style="padding:6px 8px;text-align:right;color:var(--color-text-tertiary);">CRM</th>
           <th style="padding:6px 8px;text-align:right;font-weight:600;color:var(--color-text-secondary);">총 마케팅비</th>
           <th style="padding:6px 8px;text-align:right;color:var(--color-text-tertiary);">ROAS</th>
+          <th style="padding:6px 8px;text-align:right;color:#e04e8a;font-weight:600;background:#FFF0F8;">❤️ 누적 좋아요</th>
+          <th style="padding:6px 8px;text-align:right;color:#185FA5;background:#EFF6FF;">⭐ 후기수</th>
         </tr></thead>
         <tbody id="ov-promo-tbody"></tbody>
       </table>
@@ -881,11 +883,15 @@ td.dc-td{padding:0!important;vertical-align:middle;}
         <thead><tr style="background:var(--color-background-secondary);">
           <th style="padding:6px 8px;text-align:left;color:var(--color-text-tertiary);">상품코드</th>
           <th style="padding:6px 8px;text-align:left;color:var(--color-text-tertiary);">상품명</th>
+          <th style="padding:6px 8px;text-align:left;color:var(--color-text-tertiary);">플랫폼</th>
           <th style="padding:6px 8px;text-align:right;color:var(--color-text-tertiary);">입고</th>
           <th style="padding:6px 8px;text-align:right;color:var(--color-text-tertiary);">재고</th>
           <th style="padding:6px 8px;text-align:right;color:var(--color-text-tertiary);">판매수량</th>
           <th style="padding:6px 8px;text-align:right;color:var(--color-text-tertiary);">판매금액</th>
           <th style="padding:6px 8px;text-align:right;color:var(--color-text-tertiary);">판매율</th>
+          <th style="padding:6px 8px;text-align:right;color:#e04e8a;font-weight:600;background:#FFF0F8;">❤️ 좋아요</th>
+          <th style="padding:6px 8px;text-align:right;color:#185FA5;font-weight:600;background:#EFF6FF;">⭐ 후기수</th>
+          <th style="padding:6px 8px;text-align:right;color:#185FA5;background:#EFF6FF;">평점</th>
           <th style="padding:6px 8px;text-align:center;color:var(--color-text-tertiary);">상태</th>
         </tr></thead>
         <tbody id="ov-item-tbody">
@@ -967,6 +973,12 @@ td.dc-td{padding:0!important;vertical-align:middle;}
 
 <!-- FEEDBACK -->
 <div id="pg-feedback" style="display:none;">
+  <!-- Sheets 연동 상태 표시 -->
+  <div id="fb-sheet-sync-bar" style="display:none;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px 14px;margin-bottom:10px;font-size:11px;display:flex;align-items:center;gap:8px;">
+    <span id="fb-sync-dot" style="width:7px;height:7px;border-radius:50%;background:#2d8c5a;display:inline-block;"></span>
+    <span id="fb-sync-msg">Google Sheets 연동 준비 중...</span>
+    <span style="color:var(--color-text-tertiary);margin-left:auto;" id="fb-sync-time"></span>
+  </div>
   <!-- slicer-box 1: 월 선택 + 플랫폼 구분 -->
   <div class="slicer-box" style="margin-bottom:8px;">
     <div class="slicer-group">
@@ -3706,14 +3718,22 @@ function ovBuildItemTable(){
     const salesRate=incoming>0?((sold/incoming)*100).toFixed(0):0;
     const rateColor=parseFloat(salesRate)>=70?'#2d8c5a':parseFloat(salesRate)>=40?'#d97706':'#c0392b';
     const status=stock<5?'<span style="background:#fef2f2;color:#c0392b;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600;">품절임박</span>':parseFloat(salesRate)<30?'<span style="background:#fff3cd;color:#856404;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600;">과재고</span>':'<span style="background:#EAF3DE;color:#2d8c5a;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600;">정상</span>';
+    const likes   = p.likes   || 0;
+    const reviews = p.reviews || 0;
+    const rating  = p.rating  ? parseFloat(p.rating).toFixed(1) : '-';
+    const likesColor = likes>3000?'#e04e8a':likes>1000?'#d97706':'var(--color-text-secondary)';
     return `<tr style="border-bottom:0.5px solid var(--color-border-tertiary);">
       <td style="padding:6px 8px;color:var(--color-text-tertiary);font-size:11px;">${p.code||'-'}</td>
       <td style="padding:6px 8px;font-size:11px;">${p.name||'-'}</td>
+      <td style="padding:6px 8px;font-size:11px;"><span style="font-size:10px;padding:2px 7px;border-radius:10px;background:${p.platform==='29CM'?'#FEF3C7':'#EFF6FF'};color:${p.platform==='29CM'?'#92400E':'#1E3A8A'};">${p.platform||'-'}</span></td>
       <td style="padding:6px 8px;text-align:right;font-size:11px;">${incoming}</td>
       <td style="padding:6px 8px;text-align:right;font-size:11px;font-weight:500;">${stock}</td>
       <td style="padding:6px 8px;text-align:right;font-size:11px;">${sold}</td>
       <td style="padding:6px 8px;text-align:right;font-size:11px;">${salesAmt>0?fmtOvWon(salesAmt):'-'}</td>
       <td style="padding:6px 8px;text-align:right;font-size:11px;font-weight:600;color:${rateColor};">${salesRate}%</td>
+      <td style="padding:6px 8px;text-align:right;font-size:11px;font-weight:700;color:${likesColor};background:#FFF0F8;">${likes>0?likes.toLocaleString():'-'}</td>
+      <td style="padding:6px 8px;text-align:right;font-size:11px;color:#185FA5;background:#EFF6FF;">${reviews>0?reviews.toLocaleString():'-'}</td>
+      <td style="padding:6px 8px;text-align:right;font-size:11px;background:#EFF6FF;">${rating}</td>
       <td style="padding:6px 8px;text-align:center;">${status}</td>
     </tr>`;
   }).join('');
@@ -4692,6 +4712,103 @@ function fmtK(n){if(n>=1000000)return (n/1000000).toFixed(1)+'M';if(n>=1000)retu
   };
 })();
 
+
+/* ══ Google Sheets → Feedback 상품 좋아요 자동 연동 ══ */
+let _fbSheetUrl = '';
+
+// Sheets에서 좋아요 데이터 로드 후 creators._fbData에 자동 반영
+async function fbLoadLikesFromSheet(sheetUrl) {
+  if (!sheetUrl) return;
+  _fbSheetUrl = sheetUrl;
+  try {
+    const res = await fetch(sheetUrl);
+    if (!res.ok) throw new Error('시트 로드 실패');
+    const text = await res.text();
+    const rows = text.trim().split('\n').slice(1); // 헤더 제외
+
+    // 파싱: 키(플랫폼_상품코드), 플랫폼, 상품코드, 좋아요, 후기수
+    const likeMap = {};
+    rows.forEach(row => {
+      const cols = row.split(',').map(c => c.replace(/"/g,'').trim());
+      if (cols.length < 5) return;
+      const key = cols[0]; // 무신사_MS-001 형식
+      likeMap[key] = {
+        platform: cols[1],
+        code:     cols[2],
+        likes:    parseInt(cols[3]) || 0,
+        reviews:  parseInt(cols[4]) || 0,
+      };
+    });
+
+    // window.products 업데이트
+    (window.products||[]).forEach(p => {
+      const key = `${p.platform}_${p.code}`;
+      if (likeMap[key]) {
+        p.likes   = likeMap[key].likes;
+        p.reviews = likeMap[key].reviews;
+      }
+    });
+
+    // creators._fbData.productLike 자동 기입 (VLOOKUP 역할)
+    let updated = 0;
+    (window.creators||[]).forEach(cr => {
+      if (!cr.platform || !cr.items) return;
+      (cr.items||[]).forEach(item => {
+        const key = `${cr.platform}_${item.code}`;
+        if (likeMap[key]) {
+          if (!cr._fbData) cr._fbData = {};
+          const fbKey = `${item.code}_${item.color||''}`;
+          if (!cr._fbData[fbKey]) cr._fbData[fbKey] = {view:0,comment:0,like:0,click:0,productLike:0,productReview:0,sales:0,revenue:0,total:0,rankAll:0,rankCat:0};
+          cr._fbData[fbKey].productLike   = likeMap[key].likes;
+          cr._fbData[fbKey].productReview = likeMap[key].reviews;
+          updated++;
+        }
+      });
+    });
+
+    // UI 갱신
+    const syncBar = document.getElementById('fb-sheet-sync-bar');
+    const syncMsg = document.getElementById('fb-sync-msg');
+    const syncTime = document.getElementById('fb-sync-time');
+    if (syncBar) syncBar.style.display = 'flex';
+    if (syncMsg) syncMsg.textContent = `✅ 상품 좋아요 ${updated}건 자동 기입 완료`;
+    if (syncTime) {
+      const kst = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Seoul'}));
+      syncTime.textContent = '마지막 갱신: ' + kst.getHours() + ':' + String(kst.getMinutes()).padStart(2,'0');
+    }
+
+    // Feedback 탭 리렌더
+    window.applyFeedbackFilter && window.applyFeedbackFilter();
+    // 상품별 탭 리렌더
+    if(window._ovCurrentSub === 'item') ovBuildItemTable();
+
+    console.log(`✅ Sheets 연동 완료: ${updated}건 productLike 업데이트`);
+    return likeMap;
+  } catch(e) {
+    console.error('Sheets 연동 오류:', e.message);
+    const syncMsg = document.getElementById('fb-sync-msg');
+    if (syncMsg) syncMsg.textContent = '⚠️ Sheets 연동 실패: ' + e.message;
+    return null;
+  }
+}
+window.fbLoadLikesFromSheet = fbLoadLikesFromSheet;
+
+// 설정 패널에서 Sheets URL 저장
+function fbSetSheetUrl(url) {
+  if (!url) return;
+  localStorage.setItem('fb_likes_sheet_url', url);
+  fbLoadLikesFromSheet(url);
+}
+window.fbSetSheetUrl = fbSetSheetUrl;
+
+// 페이지 로드 시 저장된 URL로 자동 로드
+(function() {
+  const saved = localStorage.getItem('fb_likes_sheet_url');
+  if (saved) {
+    setTimeout(() => fbLoadLikesFromSheet(saved), 1500);
+  }
+})();
+
 function runInit(){
 window.addPromo=addPromo;
 window.addCreator=addCreator;
@@ -4863,12 +4980,12 @@ window._injectTestData = function(){
 
   // ── 상품 ──
   window.products = [
-    {_id:'prod_0',_order:0,platform:'무신사',uid:'12345',code:'MS-001',name:'오버핏 후드 집업',cost:28000,stock:142,tag1:'아우터',tag2:'후드',tag3:'오버핏',tag4:'',tag5:''},
-    {_id:'prod_1',_order:1,platform:'무신사',uid:'11111',code:'MS-003',name:'와이드 데님 팬츠',cost:35000,stock:87,tag1:'팬츠',tag2:'데님',tag3:'와이드',tag4:'',tag5:''},
-    {_id:'prod_2',_order:2,platform:'무신사',uid:'22222',code:'MS-004',name:'그래픽 반팔 티셔츠',cost:14000,stock:210,tag1:'티셔츠',tag2:'반팔',tag3:'그래픽',tag4:'',tag5:''},
-    {_id:'prod_3',_order:3,platform:'29CM',uid:'67890',code:'29CM-002',name:'린넨 셔츠 블라우스',cost:22000,stock:63,tag1:'셔츠',tag2:'린넨',tag3:'블라우스',tag4:'',tag5:''},
-    {_id:'prod_4',_order:4,platform:'29CM',uid:'44444',code:'29CM-006',name:'미니멀 원피스',cost:31000,stock:38,tag1:'원피스',tag2:'미니멀',tag3:'',tag4:'',tag5:''},
-    {_id:'prod_5',_order:5,platform:'무신사',uid:'33333',code:'MS-005',name:'카고 쇼츠 팬츠',cost:18000,stock:15,tag1:'팬츠',tag2:'쇼츠',tag3:'카고',tag4:'',tag5:''},
+    {_id:'prod_0',_order:0,platform:'무신사',uid:'12345',code:'MS-001',name:'오버핏 후드 집업',cost:28000,stock:142,likes:2847,reviews:384,rating:4.7,tag1:'아우터',tag2:'후드',tag3:'오버핏',tag4:'',tag5:''},
+    {_id:'prod_1',_order:1,platform:'무신사',uid:'11111',code:'MS-003',name:'와이드 데님 팬츠',cost:35000,stock:87,likes:1923,reviews:241,rating:4.5,tag1:'팬츠',tag2:'데님',tag3:'와이드',tag4:'',tag5:''},
+    {_id:'prod_2',_order:2,platform:'무신사',uid:'22222',code:'MS-004',name:'그래픽 반팔 티셔츠',cost:14000,stock:210,likes:892,reviews:156,rating:4.3,tag1:'티셔츠',tag2:'반팔',tag3:'그래픽',tag4:'',tag5:''},
+    {_id:'prod_3',_order:3,platform:'29CM',uid:'67890',code:'29CM-002',name:'린넨 셔츠 블라우스',cost:22000,stock:63,likes:3412,reviews:528,rating:4.8,tag1:'셔츠',tag2:'린넨',tag3:'블라우스',tag4:'',tag5:''},
+    {_id:'prod_4',_order:4,platform:'29CM',uid:'44444',code:'29CM-006',name:'미니멀 원피스',cost:31000,stock:38,likes:4821,reviews:712,rating:4.9,tag1:'원피스',tag2:'미니멀',tag3:'',tag4:'',tag5:''},
+    {_id:'prod_5',_order:5,platform:'무신사',uid:'33333',code:'MS-005',name:'카고 쇼츠 팬츠',cost:18000,stock:15,likes:567,reviews:89,rating:4.2,tag1:'팬츠',tag2:'쇼츠',tag3:'카고',tag4:'',tag5:''},
   ];
 };
 
