@@ -4794,7 +4794,7 @@ async function fbLoadLikesFromSheet(sheetUrl) {
 window.fbLoadLikesFromSheet = fbLoadLikesFromSheet;
 
 // 설정 패널에서 Sheets URL 저장
-function fbSetSheetUrl(https://docs.google.com/spreadsheets/d/e/2PACX-1vRt6AqaEISsSaFEuEv3GzNOYM0_1RvxgAfJAlT6ekKkGOGMo2PxrvQGIImfz8EcE9xrKpQ9IDryAj2i/pub?gid=181722932&single=true&output=csv {
+function fbSetSheetUrl(url) {
   if (!url) return;
   localStorage.setItem('fb_likes_sheet_url', url);
   fbLoadLikesFromSheet(url);
