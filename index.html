@@ -5,225 +5,192 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IMC Dashboard TEST</title>
 <!-- Firebase SDK -->
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, writeBatch } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+<!-- Firebase compat SDK (module import 불필요, 로컬/GitHub 모두 동작) -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" crossorigin="anonymous"></script>
+<script>
+(function() {
+  'use strict';
+  // ★ Firebase 설정
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyBOrsQS8NL843tujWthDPDBuhuDbkyCWSQ",
+    authDomain: "imc-dashboard-bd0d6.firebaseapp.com",
+    projectId: "imc-dashboard-bd0d6",
+    storageBucket: "imc-dashboard-bd0d6.firebasestorage.app",
+    messagingSenderId: "720006004816",
+    appId: "1:720006004816:web:7968aa116d68316f4cd155"
+  };
 
-// ══════════════════════════════════════════
-// ★ Firebase 설정 — 아래 값을 본인 프로젝트 값으로 교체하세요
-// ══════════════════════════════════════════
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyBOrsQS8NL843tujWthDPDBuhuDbkyCWSQ",
-  authDomain: "imc-dashboard-bd0d6.firebaseapp.com",
-  projectId: "imc-dashboard-bd0d6",
-  storageBucket: "imc-dashboard-bd0d6.firebasestorage.app",
-  messagingSenderId: "720006004816",
-  appId: "1:720006004816:web:7968aa116d68316f4cd155"
-};
-// ══════════════════════════════════════════
+  let db = null;
+  let isFirebaseReady = false;
 
-let db = null;
-let isFirebaseReady = false;
-
-async function initFirebase() {
-  try {
-    const app = initializeApp(FIREBASE_CONFIG);
-    db = getFirestore(app);
-    isFirebaseReady = true;
-    console.log('Firebase 연결 성공');
-    updateFirebaseStatus(true);
-    // 데이터 초기 로드
-    await loadAllFromFirebase();
-    // 실시간 리스너 등록
-    setupRealtimeListeners();
-  } catch(e) {
-    console.error('Firebase 연결 실패:', e);
-    updateFirebaseStatus(false, e.message);
+  // ── initFirebase ──
+  async function initFirebase() {
+    try {
+      if (typeof firebase === 'undefined') {
+        throw new Error('Firebase SDK 로드 실패 — CDN 연결 확인 필요');
+      }
+      if (!firebase.apps.length) {
+        firebase.initializeApp(FIREBASE_CONFIG);
+      }
+      db = firebase.firestore();
+      window.db = db;
+      isFirebaseReady = true;
+      window.isFirebaseReady = true;
+      console.log('Firebase 연결 성공');
+      updateFirebaseStatus(true);
+      await loadAllFromFirebase();
+      setupRealtimeListeners();
+    } catch(e) {
+      console.error('Firebase 연결 실패:', e);
+      updateFirebaseStatus(false, e.message);
+    }
   }
-}
 
-function updateFirebaseStatus(ok, msg) {
-  const el = document.getElementById('fb-status');
-  if (!el) return;
-  if (ok) {
-    el.innerHTML = '<span style="color:#2d8c5a;">● Firebase 연결됨 — 실시간 동기화 중</span>';
-  } else {
-    el.innerHTML = `<span style="color:#c0392b;">● Firebase 연결 실패: ${msg||''}</span> <span style="color:var(--color-text-tertiary);font-size:11px;">(로컬 모드로 동작)</span>`;
+  function updateFirebaseStatus(ok, msg) {
+    const el = document.getElementById('fb-status');
+    if (!el) return;
+    if (ok) {
+      el.innerHTML = '<span style="color:#2d8c5a;">● Firebase 연결됨</span>';
+    } else {
+      el.innerHTML = '<span style="color:#c0392b;">● Firebase 오류: '+(msg||'')+'</span>';
+    }
   }
-}
 
-// ── 전체 데이터 로드 ──
-async function loadAllFromFirebase() {
-  try {
-    const [promosSnap, creatorsSnap, productsSnap, budgetsSnap, settingsSnap] = await Promise.all([
-      getDocs(collection(db, 'promos')),
-      getDocs(collection(db, 'creators')),
-      getDocs(collection(db, 'products')),
-      getDocs(collection(db, 'budgets')),
-      getDocs(collection(db, 'settings')),
-    ]);
-    if (!promosSnap.empty) {
-      window.promos = promosSnap.docs.map(d => ({_id: d.id, ...d.data()})).sort((a,b)=>a._order-b._order);
-    }
-    if (!creatorsSnap.empty) {
-      window.creators = creatorsSnap.docs.map(d => ({_id: d.id, ...d.data()})).sort((a,b)=>a._order-b._order);
-    }
-    if (!productsSnap.empty) {
-      window.products = productsSnap.docs.map(d => ({_id: d.id, ...d.data()})).sort((a,b)=>a._order-b._order);
-    }
-    if (!budgetsSnap.empty) {
-      budgetsSnap.docs.forEach(d => {
-        if(d.id==='memos'){window.budgetMemos=d.data()||{};}
-        else{const mi=parseInt(d.id);if(mi>=0&&mi<12)window.budgets[mi]=d.data().values||[0,0,0,0,0];}
+  // ── Firestore CRUD 함수 (window에 노출) ──
+  window.fbSave = async function(collName, id, data) {
+    if (!isFirebaseReady) return;
+    try { await db.collection(collName).doc(id).set(data); }
+    catch(e) { console.error('fbSave 오류:', e); }
+  };
+
+  window.fbSaveSheetUrls = async function() {
+    if (!isFirebaseReady) return;
+    try {
+      const urls = {
+        itemSheetUrl:      window.itemSheetUrl || '',
+        metaUrlAd:         window.metaSheetUrlAd || '',
+        metaUrlAdp:        window.metaSheetUrlAdp || '',
+        metaUrlSales:      window.metaSheetUrlSales || '',
+      };
+      await db.collection('settings').doc('sheetUrls').set(urls);
+    } catch(e) { console.error('시트 URL 저장 실패:', e); }
+  };
+
+  window.fbDelete = async function(collName, id) {
+    if (!isFirebaseReady) return;
+    try { await db.collection(collName).doc(id).delete(); }
+    catch(e) { console.error('fbDelete 오류:', e); }
+  };
+
+  window.fbSaveBatch = async function(collName, items) {
+    if (!isFirebaseReady) return;
+    try {
+      const existing = await db.collection(collName).get();
+      const batch = db.batch();
+      existing.docs.forEach(d => batch.delete(d.ref));
+      items.forEach((item, i) => {
+        const id = item._id || (collName + '_' + i);
+        batch.set(db.collection(collName).doc(id), item);
       });
-    }
-    // ── 시트 URL 복원 (settings 컬렉션) ──
-    if (!settingsSnap.empty) {
-      settingsSnap.docs.forEach(d => {
-        const data = d.data();
-        if (d.id === 'sheetUrls') {
-          // Item 시트 URL 복원
-          if (data.itemSheetUrl) {
-            window.itemSheetUrl = data.itemSheetUrl;
-            const el = document.getElementById('item-sheet-url');
-            if (el) el.value = data.itemSheetUrl;
-            const btn = document.getElementById('item-sheet-refresh');
-            if (btn) btn.style.display = 'inline-block';
-          }
-          // Meta 시트 URL 복원
-          if (data.metaUrlAd) {
-            window.metaSheetUrlAd = data.metaUrlAd;
-            const el = document.getElementById('meta-url-ad');
-            if (el) el.value = data.metaUrlAd;
-          }
-          if (data.metaUrlAdp) {
-            window.metaSheetUrlAdp = data.metaUrlAdp;
-            const el = document.getElementById('meta-url-adp');
-            if (el) el.value = data.metaUrlAdp;
-          }
-          if (data.metaUrlSales) {
-            window.metaSheetUrlSales = data.metaUrlSales;
-            const el = document.getElementById('meta-url-sales');
-            if (el) el.value = data.metaUrlSales;
-            const btn = document.getElementById('meta-sheet-refresh');
-            if (btn) btn.style.display = 'inline-block';
-          }
-          // ── Meta 시트 URL 3개 모두 있으면 자동으로 데이터 로드 ──
-          if (data.metaUrlAd && data.metaUrlAdp && data.metaUrlSales) {
-            setTimeout(() => {
-              window.loadMetaFromSheets && window.loadMetaFromSheets();
-            }, 800);
-          }
-          // ── Item 시트 URL 있으면 자동으로 새로고침 ──
-          if (data.itemSheetUrl) {
-            setTimeout(() => {
-              window.refreshItemFromSheet && window.refreshItemFromSheet();
-            }, 1000);
-          }
+      await batch.commit();
+    } catch(e) { console.error('fbSaveBatch 오류:', e); }
+  };
+
+  window.fbSaveBudget = async function(mi, values) {
+    if (!isFirebaseReady) return;
+    try {
+      await db.collection('budgets').doc(String(mi)).set({ values });
+    } catch(e) { console.error('예산 저장 실패:', e); }
+  };
+
+  // ── loadAllFromFirebase ──
+  window.loadAllFromFirebase = async function() {
+    if (!isFirebaseReady) return;
+    try {
+      const [promosSnap, creatorsSnap, productsSnap, budgetsSnap, settingsSnap] = await Promise.all([
+        db.collection('promos').orderBy('_order').get().catch(()=>({docs:[]})),
+        db.collection('creators').orderBy('_order').get().catch(()=>({docs:[]})),
+        db.collection('products').orderBy('_order').get().catch(()=>({docs:[]})),
+        db.collection('budgets').get().catch(()=>({docs:[]})),
+        db.collection('settings').get().catch(()=>({docs:[]})),
+      ]);
+
+      if (!promosSnap.docs.length && !creatorsSnap.docs.length) {
+        if (window._injectTestData) window._injectTestData();
+        return;
+      }
+
+      if (promosSnap.docs.length)   window.promos   = promosSnap.docs.map(d => ({_id: d.id, ...d.data()})).sort((a,b)=>(a._order||0)-(b._order||0));
+      if (creatorsSnap.docs.length) window.creators = creatorsSnap.docs.map(d => ({_id: d.id, ...d.data()})).sort((a,b)=>(a._order||0)-(b._order||0));
+      if (productsSnap.docs.length) window.products = productsSnap.docs.map(d => ({_id: d.id, ...d.data()})).sort((a,b)=>(a._order||0)-(b._order||0));
+
+      budgetsSnap.docs.forEach(d => {
+        const mi = parseInt(d.id);
+        if (!isNaN(mi)) {
+          window.budgets = window.budgets || Array.from({length:12},()=>[0,0,0,0,0,0]);
+          window.budgets[mi] = d.data().values || [0,0,0,0,0,0];
         }
       });
+
+      if (!settingsSnap.empty) {
+        settingsSnap.docs.forEach(d => {
+          const data = d.data();
+          if (d.id === 'sheetUrls') {
+            if (data.itemSheetUrl)   window.itemSheetUrl         = data.itemSheetUrl;
+            if (data.metaUrlAd)      window.metaSheetUrlAd       = data.metaUrlAd;
+            if (data.metaUrlAdp)     window.metaSheetUrlAdp      = data.metaUrlAdp;
+            if (data.metaUrlSales)   window.metaSheetUrlSales    = data.metaUrlSales;
+          }
+        });
+      }
+
+    } catch(e) {
+      console.error('데이터 로드 실패:', e);
+      if (window._injectTestData) window._injectTestData();
     }
-    // 렌더 갱신
-    window.applyPromoFilter && window.applyPromoFilter();
-    window.applyListFilter && window.applyListFilter();
-    window.renderBudget && window.renderBudget();
-    window.renderProducts && window.renderProducts();
-    window.buildCal && window.buildCal();
-    console.log('Firebase 데이터 로드 완료');
-  } catch(e) {
-    console.error('데이터 로드 실패:', e);
+  };
+
+  // ── setupRealtimeListeners ──
+  function setupRealtimeListeners() {
+    if (!isFirebaseReady) return;
+    db.collection('creators').onSnapshot(snap => {
+      window.creators = snap.docs.map(d => ({_id: d.id, ...d.data()})).sort((a,b)=>(a._order||0)-(b._order||0));
+      if (window.applyListFilter) window.applyListFilter();
+      if (window.buildCal) window.buildCal();
+      if (window.applyFeedbackFilter) window.applyFeedbackFilter();
+    });
+    db.collection('promos').onSnapshot(snap => {
+      window.promos = snap.docs.map(d => ({_id: d.id, ...d.data()})).sort((a,b)=>(a._order||0)-(b._order||0));
+      if (window.applyPromoFilter) window.applyPromoFilter();
+    });
+    db.collection('products').onSnapshot(snap => {
+      window.products = snap.docs.map(d => ({_id: d.id, ...d.data()})).sort((a,b)=>(a._order||0)-(b._order||0));
+    });
   }
-}
 
-// ── 실시간 리스너 ──
-function setupRealtimeListeners() {
-  // 크리에이터 실시간 동기화
-  onSnapshot(collection(db, 'creators'), snap => {
-    window.creators = snap.docs.map(d => {
-      const data = d.data();
-      // _fbData가 없으면 빈 객체로 초기화
-      if (!data._fbData) data._fbData = {};
-      return {_id: d.id, ...data};
-    }).sort((a,b)=>a._order-b._order);
-    window.applyListFilter && window.applyListFilter();
-    window.buildCal && window.buildCal();
-    window.updateSummary && window.updateSummary();
-  });
-  // 프로모션 실시간 동기화
-  onSnapshot(collection(db, 'promos'), snap => {
-    window.promos = snap.docs.map(d => ({_id: d.id, ...d.data()})).sort((a,b)=>a._order-b._order);
-    window.applyPromoFilter && window.applyPromoFilter();
-    window.buildCal && window.buildCal();
-  });
-  // 상품 실시간 동기화
-  onSnapshot(collection(db, 'products'), snap => {
-    window.products = snap.docs.map(d => ({_id: d.id, ...d.data()})).sort((a,b)=>a._order-b._order);
-    window.renderProducts && window.renderProducts();
-  });
-}
+  // 초기화 — CDN 완전 로드 후 실행 보장
+  function tryInitFirebase(attempts) {
+    attempts = attempts || 0;
+    if (typeof firebase !== 'undefined') {
+      initFirebase();
+    } else if (attempts < 20) {
+      // firebase CDN 아직 로드 중 → 100ms 후 재시도
+      setTimeout(function() { tryInitFirebase(attempts + 1); }, 100);
+    } else {
+      console.warn('Firebase CDN 로드 실패 — 오프라인 모드로 동작합니다');
+      if (window._injectTestData) window._injectTestData();
+    }
+  }
 
-// ── Firebase 저장 함수들 (window에 등록) ──
-window.fbSave = async function(collName, id, data) {
-  if (!isFirebaseReady) return;
-  try {
-    await setDoc(doc(db, collName, id), data);
-  } catch(e) { console.error('저장 실패:', e); }
-};
-
-// ── 시트 URL Firebase 저장 ──
-window.fbSaveSheetUrls = async function() {
-  if (!isFirebaseReady) return;
-  try {
-    await setDoc(doc(db, 'settings', 'sheetUrls'), {
-      itemSheetUrl: window.itemSheetUrl || '',
-      metaUrlAd: window.metaSheetUrlAd || '',
-      metaUrlAdp: window.metaSheetUrlAdp || '',
-      metaUrlSales: window.metaSheetUrlSales || '',
-      updatedAt: new Date().toISOString(),
-    });
-    console.log('시트 URL Firebase 저장 완료');
-  } catch(e) { console.error('시트 URL 저장 실패:', e); }
-};
-
-window.fbDelete = async function(collName, id) {
-  if (!isFirebaseReady) return;
-  try {
-    await deleteDoc(doc(db, collName, id));
-  } catch(e) { console.error('삭제 실패:', e); }
-};
-
-window.fbSaveBatch = async function(collName, items) {
-  if (!isFirebaseReady) return;
-  try {
-    // 기존 문서 모두 가져와서 삭제 후 새로 저장 (ID 충돌 방지)
-    const existing = await getDocs(collection(db, collName));
-    const batch = writeBatch(db);
-    // 기존 문서 삭제
-    existing.docs.forEach(d => {
-      batch.delete(doc(db, collName, d.id));
-    });
-    // 새 문서 저장 (_id 없으면 genId로 생성)
-    items.forEach((item, i) => {
-      const id = item._id || (collName + '_' + String(Date.now()) + '_' + i);
-      const ref = doc(db, collName, id);
-      batch.set(ref, {...item, _id: id, _order: i});
-    });
-    await batch.commit();
-  } catch(e) { console.error('배치 저장 실패:', e); }
-};
-
-window.fbSaveBudget = async function(mi, values) {
-  if (!isFirebaseReady) return;
-  try {
-    await setDoc(doc(db, 'budgets', String(mi)), { values });
-  } catch(e) { console.error('예산 저장 실패:', e); }
-};
-
-// 초기화 실행
-document.addEventListener('DOMContentLoaded', () => {
-  initFirebase(); // config 자동 설정 완료
-});
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { tryInitFirebase(); });
+  } else {
+    tryInitFirebase();
+  }
+})();
 </script>
+
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -671,8 +638,8 @@ td.dc-td{padding:0!important;vertical-align:middle;}
         <button class="ov-sbtn" data-view="bronte"  onclick="ovSubFilter(this,'bronte')">브론테</button>
       </div>
       <div id="ov-offline-subs" style="display:none;flex-wrap:wrap;gap:5px;">
-        <button class="ov-sbtn" data-view="cb" onclick="ovSubFilter(this,'cb')">시티브리즈</button>
-        <button class="ov-sbtn" data-view="at" onclick="ovSubFilter(this,'at')">아티드</button>
+        <button class="ov-sbtn" data-view="cb" onclick="ovSubFilter(this,'cb')">무신사</button>
+        <button class="ov-sbtn" data-view="at" onclick="ovSubFilter(this,'at')">29CM</button>
       </div>
     </div>
   </div>
@@ -2463,7 +2430,7 @@ function mUpdateDailyTable(f){
   const el=document.getElementById('m-daily-tbody');if(!el)return;
   el.innerHTML=f.map(r=>'<tr><td>'+r.dateKo+'</td><td class="td-r">'+mFW(r.spend)+'</td><td class="td-r">'+mFN(r.imp)+'</td><td class="td-r">'+mFN(r.linkClicks)+'</td><td class="td-r">'+mFW(r.cpc)+'</td><td class="td-r">'+r.ctr+'%</td><td class="td-r">'+mFN(r.purchase)+'</td><td class="td-r">'+mFW(r.cpp)+'</td><td class="td-r">'+mFW(r.convVal)+'</td><td class="td-r">'+r.roas+'</td><td class="td-r">'+mFN(r.cart)+'</td><td class="td-r">'+r.cvr+'%</td><td class="td-r">'+mFN(r.dailyPurch)+'</td><td class="td-r">'+mFW(r.dailySales)+'</td></tr>').join('');
 }
-const M_PRODS={brand1:{musinsa:['스트릿 오버핏 후드집업','와이드 데님 팬츠','그래픽 반팔 티셔츠','에센셜 맨투맨','카고 쇼츠 팬츠'],'29cm':['린넨 셔츠 블라우스','미니멀 원피스','크롭 재킷','와이드 팬츠','니트 가디건'],store:['클래식 화이트 셔츠','슬림핏 슬랙스','베이직 니트','체크 블레이저','코튼 팬츠']},brand2:{musinsa:['테크 파카 자켓','조거 팬츠','리플렉티브 후드','퍼포먼스 티','러닝 쇼츠'],'29cm':['플로럴 드레스','캐주얼 데님 자켓','슬립 원피스','크롭 탑','플레어 스커트'],store:['프리미엄 수트','캐시미어 니트','실크 블라우스','울 코트','드레스 셔츠']}};
+const M_PRODS={brand1:{musinsa:['스트릿 오버핏 후드집업','TCM wide denim pants','그래픽 반팔 티셔츠','에센셜 맨투맨','TCM logo hoodie (charcoal)'],'29cm':['TCM apo T (purple)','TCM field cap (navy)','크롭 재킷','와이드 팬츠','니트 가디건'],store:['클래식 화이트 셔츠','슬림핏 슬랙스','베이직 니트','체크 블레이저','코튼 팬츠']},brand2:{musinsa:['테크 파카 자켓','조거 팬츠','리플렉티브 후드','퍼포먼스 티','러닝 쇼츠'],'29cm':['플로럴 드레스','캐주얼 데님 자켓','슬립 원피스','크롭 탑','플레어 스커트'],store:['프리미엄 수트','캐시미어 니트','실크 블라우스','울 코트','드레스 셔츠']}};
 function mGenDaily(brand,platform,month){
   const days=mGetDays(month),mIdx=M_MONTHS.indexOf(month);
   const bM=brand==='brand1'?1:0.72;const pM={musinsa:1,'29cm':0.85,store:0.6}[platform]||1;
@@ -3186,8 +3153,8 @@ function ovInitPieChart(view){
     {label:'지그재그',key:'zigzag',color:'#2d8c5a'},{label:'브론테',key:'bronte',color:'#e04e3c'},
   ];
   const allOffline=[
-    {label:'시티브리즈',key:'cb',color:'#185FA5'},
-    {label:'아티드',key:'at',color:'#ea6c1b'},
+    {label:'무신사',key:'cb',color:'#185FA5'},
+    {label:'29CM',key:'at',color:'#ea6c1b'},
   ];
   let channels;
   if(!view||view==='total'||view==='multi'||view.startsWith('multi_'))
@@ -4161,7 +4128,7 @@ function ovBuildItemRankChart(){
   // 더미 또는 실제 데이터 준비
   let labels, qtys, revenues;
   if(!prods.length){
-    labels   = ['오버핏 후드 집업','와이드 데님 팬츠','린넨 셔츠 블라우스','미니멀 원피스','카고 쇼츠 팬츠'];
+    labels   = ['TCM apo T (black)','TCM logo hoodie','TCM 3-way mini flap bag','TCM field cap','TCM wide denim pants'];
     qtys     = _ovItemInterval==='weekly' ? [42,35,28,22,15] : [168,140,112,88,60];
     revenues = qtys.map((v,i)=>Math.round([120000,95000,80000,70000,55000][i]*v/1e4));
   } else {
@@ -4962,21 +4929,21 @@ window._injectTestData = function(){
 
   // ── 프로모션 ──
   window.promos = [
-    {_id:'promo_1',_order:0,platform:'무신사',startDate:y+'-'+m+'-01',startTime:'10',endDate:y+'-'+m+'-15',endTime:'23',name:'봄 시즌 오프',benefit:'최대 30% 할인 + 쿠폰 5%'},
-    {_id:'promo_2',_order:1,platform:'29CM',startDate:y+'-'+m+'-10',startTime:'11',endDate:y+'-'+m+'-20',endTime:'23',name:'29CM 브랜드위크',benefit:'전상품 20% + 무료배송'},
+    {_id:'promo_1',_order:0,platform:'무신사',startDate:y+'-'+m+'-01',startTime:'10',endDate:y+'-'+m+'-15',endTime:'23',name:'무신사 더콜디 기획전',benefit:'최대 30% 할인 + 무료배송'},
+    {_id:'promo_2',_order:1,platform:'29CM',startDate:y+'-'+m+'-10',startTime:'11',endDate:y+'-'+m+'-20',endTime:'23',name:'29CM 브랜드위크',benefit:'전상품 20% + 쿠폰 5%'},
     {_id:'promo_3',_order:2,platform:'무신사',startDate:y+'-'+m+'-20',startTime:'10',endDate:y+'-'+m+'-30',endTime:'23',name:'이구데이',benefit:'최대 40% 할인'},
-    {_id:'promo_4',_order:3,platform:'자사몰',startDate:y+'-'+m+'-05',startTime:'10',endDate:y+'-'+m+'-25',endTime:'23',name:'자사몰 멤버십 위크',benefit:'포인트 3배 + 신규 쿠폰'},
+    {_id:'promo_4',_order:3,platform:'자사몰',startDate:y+'-'+m+'-05',startTime:'10',endDate:y+'-'+m+'-25',endTime:'23',name:'더콜디스트모먼트 공홈 위크',benefit:'멤버십 포인트 3배 + 신규 쿠폰'},
   ];
 
   // ── 크리에이터 ──
   const creators = [
-    {name:'김민영',id:'@minyyoung',ch:'Instagram',collab:'유가',followers:'128K',contact:'컨택 완료',contactPoint:'DM',checked:true,uploadDate:dStr(5),platform:'무신사',campaign:'봄 시즌 오프',contentType:'IG 릴스 브랜디드',cost1:300000,cost2:0,sec:'-',linkType:'취합',payType:'개인',settle:'',progress:'업로드 완료',note:'',uploadLink:'https://www.instagram.com/p/sample1',items:[{uid:'12345',code:'MS-001',name:'오버핏 후드 집업',color:'블랙'}]},
-    {name:'이수진',id:'@soojin_life',ch:'Instagram',collab:'무가',followers:'54K',contact:'컨택 완료',contactPoint:'이메일',checked:true,uploadDate:dStr(3),platform:'29CM',campaign:'29CM 브랜드위크',contentType:'IG 피드 브랜디드',cost1:150000,cost2:50000,sec:'진행',linkType:'개별',payType:'사업자',settle:'',progress:'업로드 완료',note:'2차 콘텐츠 추가 요청',uploadLink:'https://www.instagram.com/p/sample2',items:[{uid:'67890',code:'29CM-002',name:'린넨 셔츠 블라우스',color:'아이보리'}]},
-    {name:'박준호',id:'@junho_style',ch:'Youtube',collab:'유가',followers:'89K',contact:'진행가능',contactPoint:'유튜브 스튜디오',checked:true,uploadDate:dStr(1),platform:'무신사',campaign:'봄 시즌 오프',contentType:'YT 하울',cost1:500000,cost2:100000,sec:'포함',linkType:'취합',payType:'사업자',settle:'',progress:'업로드 완료',note:'',uploadLink:'https://www.youtube.com/watch?v=sample3',items:[{uid:'11111',code:'MS-003',name:'와이드 데님 팬츠',color:'인디고'},{uid:'22222',code:'MS-004',name:'그래픽 반팔 티셔츠',color:'화이트'}]},
-    {name:'오채원',id:'@chaewon_ootd',ch:'Tiktok',collab:'유가',followers:'445K',contact:'컨택 완료',contactPoint:'틱톡 DM',checked:true,uploadDate:dStr(2),platform:'무신사',campaign:'이구데이',contentType:'TT 숏폼',cost1:250000,cost2:80000,sec:'진행',linkType:'취합',payType:'개인',settle:'',progress:'업로드 완료',note:'조기 바이럴',uploadLink:'https://www.tiktok.com/@chaewon/video/sample4',items:[{uid:'33333',code:'MS-005',name:'카고 쇼츠 팬츠',color:'카키'}]},
-    {name:'정은비',id:'@eunbi_lifestyle',ch:'Youtube',collab:'유가',followers:'156K',contact:'컨택 완료',contactPoint:'매니저',checked:true,uploadDate:dStr(6),platform:'29CM',campaign:'29CM 브랜드위크',contentType:'YT 룩북',cost1:800000,cost2:0,sec:'-',linkType:'개별',payType:'사업자',settle:'',progress:'업로드 완료',note:'',uploadLink:'https://www.youtube.com/watch?v=sample5',items:[{uid:'67890',code:'29CM-002',name:'린넨 셔츠 블라우스',color:'아이보리'},{uid:'44444',code:'29CM-006',name:'미니멀 원피스',color:'베이지'}]},
-    {name:'최유리',id:'@yuri_picks',ch:'Instagram',collab:'유가',followers:'210K',contact:'컨택 완료',contactPoint:'매니저 이메일',checked:false,uploadDate:dStr(0),platform:'무신사',campaign:'이구데이',contentType:'IG 릴스 브랜디드',cost1:800000,cost2:0,sec:'-',linkType:'취합',payType:'사업자',settle:'',progress:'',note:'협의 중',uploadLink:'',items:[{uid:'33333',code:'MS-005',name:'카고 쇼츠 팬츠',color:'카키'}]},
-    {name:'한지수',id:'@jisu.daily',ch:'Tiktok',collab:'무가',followers:'320K',contact:'컨택 완료',contactPoint:'틱톡 DM',checked:true,uploadDate:dStr(4),platform:'29CM',campaign:'29CM 브랜드위크',contentType:'TT 챌린지',cost1:0,cost2:0,sec:'-',linkType:'취합',payType:'개인',settle:'',progress:'업로드 완료',note:'바이럴 기대',uploadLink:'https://www.tiktok.com/@jisu.daily/video/sample',items:[{uid:'44444',code:'29CM-006',name:'미니멀 원피스',color:'베이지'}]},
+    {name:'김민영',id:'@minyyoung',ch:'Instagram',collab:'유가',followers:'128K',contact:'컨택 완료',contactPoint:'DM',checked:true,uploadDate:dStr(5),platform:'무신사',campaign:'무신사 더콜디 기획전',contentType:'IG 릴스 브랜디드',cost1:300000,cost2:0,sec:'-',linkType:'취합',payType:'개인',settle:'',progress:'업로드 완료',note:'',uploadLink:'https://www.instagram.com/p/sample1',items:[{uid:'6120904',code:'TCM-001',name:'TCM apo T (black)',color:'블랙'}]},
+    {name:'이수진',id:'@soojin_life',ch:'Instagram',collab:'무가',followers:'54K',contact:'컨택 완료',contactPoint:'이메일',checked:true,uploadDate:dStr(3),platform:'29CM',campaign:'29CM 브랜드위크',contentType:'IG 피드 브랜디드',cost1:150000,cost2:50000,sec:'진행',linkType:'개별',payType:'사업자',settle:'',progress:'업로드 완료',note:'2차 콘텐츠 추가 요청',uploadLink:'https://www.instagram.com/p/sample2',items:[{uid:'3851707',code:'TCM-002',name:'TCM apo T (purple)',color:'퍼플'}]},
+    {name:'박준호',id:'@junho_style',ch:'Youtube',collab:'유가',followers:'89K',contact:'진행가능',contactPoint:'유튜브 스튜디오',checked:true,uploadDate:dStr(1),platform:'무신사',campaign:'무신사 더콜디 기획전',contentType:'YT 하울',cost1:500000,cost2:100000,sec:'포함',linkType:'취합',payType:'사업자',settle:'',progress:'업로드 완료',note:'',uploadLink:'https://www.youtube.com/watch?v=sample3',items:[{uid:'6120456',code:'TCM-003',name:'TCM 3-way mini flap bag',color:'블랙'},{uid:'3436946',code:'TCM-004',name:'TCM field cap',color:'네이비'}]},
+    {name:'오채원',id:'@chaewon_ootd',ch:'Tiktok',collab:'유가',followers:'445K',contact:'컨택 완료',contactPoint:'틱톡 DM',checked:true,uploadDate:dStr(2),platform:'무신사',campaign:'이구데이',contentType:'TT 숏폼',cost1:250000,cost2:80000,sec:'진행',linkType:'취합',payType:'개인',settle:'',progress:'업로드 완료',note:'조기 바이럴',uploadLink:'https://www.tiktok.com/@chaewon/video/sample4',items:[{uid:'6120904',code:'TCM-001',name:'TCM apo T (black)',color:'화이트'}]},
+    {name:'정은비',id:'@eunbi_lifestyle',ch:'Youtube',collab:'유가',followers:'156K',contact:'컨택 완료',contactPoint:'매니저',checked:true,uploadDate:dStr(6),platform:'29CM',campaign:'29CM 브랜드위크',contentType:'YT 룩북',cost1:800000,cost2:0,sec:'-',linkType:'개별',payType:'사업자',settle:'',progress:'업로드 완료',note:'',uploadLink:'https://www.youtube.com/watch?v=sample5',items:[{uid:'67890',code:'29CM-002',name:'TCM apo T (purple)',color:'퍼플'},{uid:'44444',code:'29CM-006',name:'TCM field cap (navy)',color:'네이비'}]},
+    {name:'최유리',id:'@yuri_picks',ch:'Instagram',collab:'유가',followers:'210K',contact:'컨택 완료',contactPoint:'매니저 이메일',checked:false,uploadDate:dStr(0),platform:'무신사',campaign:'이구데이',contentType:'IG 릴스 브랜디드',cost1:800000,cost2:0,sec:'-',linkType:'취합',payType:'사업자',settle:'',progress:'',note:'협의 중',uploadLink:'',items:[{uid:'33333',code:'MS-005',name:'TCM logo hoodie (charcoal)',color:'차콜'}]},
+    {name:'한지수',id:'@jisu.daily',ch:'Tiktok',collab:'무가',followers:'320K',contact:'컨택 완료',contactPoint:'틱톡 DM',checked:true,uploadDate:dStr(4),platform:'29CM',campaign:'29CM 브랜드위크',contentType:'TT 챌린지',cost1:0,cost2:0,sec:'-',linkType:'취합',payType:'개인',settle:'',progress:'업로드 완료',note:'바이럴 기대',uploadLink:'https://www.tiktok.com/@jisu.daily/video/sample',items:[{uid:'44444',code:'29CM-006',name:'TCM field cap (navy)',color:'네이비'}]},
   ];
 
   // _id, _order, _fbData 부여
@@ -5029,13 +4996,113 @@ window._injectTestData = function(){
 
   // ── 상품 ──
   window.products = [
-    {_id:'prod_0',_order:0,platform:'무신사',uid:'12345',code:'MS-001',name:'오버핏 후드 집업',cost:28000,stock:142,likes:2847,reviews:384,rating:4.7,tag1:'아우터',tag2:'후드',tag3:'오버핏',tag4:'',tag5:''},
-    {_id:'prod_1',_order:1,platform:'무신사',uid:'11111',code:'MS-003',name:'와이드 데님 팬츠',cost:35000,stock:87,likes:1923,reviews:241,rating:4.5,tag1:'팬츠',tag2:'데님',tag3:'와이드',tag4:'',tag5:''},
-    {_id:'prod_2',_order:2,platform:'무신사',uid:'22222',code:'MS-004',name:'그래픽 반팔 티셔츠',cost:14000,stock:210,likes:892,reviews:156,rating:4.3,tag1:'티셔츠',tag2:'반팔',tag3:'그래픽',tag4:'',tag5:''},
-    {_id:'prod_3',_order:3,platform:'29CM',uid:'67890',code:'29CM-002',name:'린넨 셔츠 블라우스',cost:22000,stock:63,likes:3412,reviews:528,rating:4.8,tag1:'셔츠',tag2:'린넨',tag3:'블라우스',tag4:'',tag5:''},
-    {_id:'prod_4',_order:4,platform:'29CM',uid:'44444',code:'29CM-006',name:'미니멀 원피스',cost:31000,stock:38,likes:4821,reviews:712,rating:4.9,tag1:'원피스',tag2:'미니멀',tag3:'',tag4:'',tag5:''},
-    {_id:'prod_5',_order:5,platform:'무신사',uid:'33333',code:'MS-005',name:'카고 쇼츠 팬츠',cost:18000,stock:15,likes:567,reviews:89,rating:4.2,tag1:'팬츠',tag2:'쇼츠',tag3:'카고',tag4:'',tag5:''},
+    {_id:'prod_0',_order:0,platform:'무신사',uid:'6120904',code:'TCM-001',name:'TCM apo T (black)',cost:42000,stock:142,likes:2847,reviews:384,rating:4.7,tag1:'티셔츠',tag2:'반팔',tag3:'TCM',tag4:'블랙',tag5:''},
+    {_id:'prod_1',_order:1,platform:'무신사',uid:'6120456',code:'TCM-003',name:'TCM 3-way mini flap bag (black)',cost:89000,stock:87,likes:1923,reviews:241,rating:4.5,tag1:'가방',tag2:'미니백',tag3:'TCM',tag4:'블랙',tag5:''},
+    {_id:'prod_2',_order:2,platform:'무신사',uid:'6089341',code:'TCM-005',name:'TCM logo hoodie (charcoal)',cost:68000,stock:210,likes:3241,reviews:412,rating:4.6,tag1:'후드',tag2:'맨투맨',tag3:'TCM',tag4:'차콜',tag5:''},
+    {_id:'prod_3',_order:3,platform:'29CM',uid:'3851707',code:'TCM-002',name:'TCM apo T (purple)',cost:42000,stock:63,likes:3412,reviews:528,rating:4.8,tag1:'티셔츠',tag2:'반팔',tag3:'TCM',tag4:'퍼플',tag5:''},
+    {_id:'prod_4',_order:4,platform:'29CM',uid:'3436946',code:'TCM-004',name:'TCM field cap (navy)',cost:38000,stock:95,likes:4821,reviews:712,rating:4.9,tag1:'모자',tag2:'캡',tag3:'TCM',tag4:'네이비',tag5:''},
+    {_id:'prod_5',_order:5,platform:'29CM',uid:'3901234',code:'TCM-006',name:'TCM wide denim pants (indigo)',cost:98000,stock:54,likes:1876,reviews:267,rating:4.4,tag1:'팬츠',tag2:'데님',tag3:'TCM',tag4:'인디고',tag5:''},
   ];
+
+  // ── Overview 연간/월간 판매 데이터 ──
+  window.salesData = window.salesData || {};
+  window.salesData.annual = {
+    total:   {labels:['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
+               sales:[28500000,31200000,42800000,38600000,51200000,44300000,39800000,47600000,55300000,49200000,62100000,71400000],
+               orders:[312,341,468,422,560,485,435,521,605,538,680,782]},
+    online:  {labels:['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
+               sales:[21200000,23800000,33100000,29800000,39600000,34200000,30700000,36800000,42700000,38000000,47900000,55100000],
+               orders:[232,261,362,326,433,374,336,403,467,416,525,603]},
+    offline: {labels:['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
+               sales:[7300000,7400000,9700000,8800000,11600000,10100000,9100000,10800000,12600000,11200000,14200000,16300000],
+               orders:[80,80,106,96,127,111,99,118,138,122,155,179]},
+  };
+
+  // ── Overview 프로모션 실적 데이터 ──
+  window.promoSales = [
+    {id:'promo_1',name:'봄 시즌 오프',platform:'무신사',
+     sales:42800000,meta:3200000,em:800000,ifCost:1500000,crm:400000,total:5900000,roas:'725'},
+    {id:'promo_2',name:'29CM 브랜드위크',platform:'29CM',
+     sales:38600000,meta:2800000,em:600000,ifCost:1200000,crm:350000,total:4950000,roas:'780'},
+    {id:'promo_3',name:'이구데이',platform:'무신사',
+     sales:51200000,meta:4100000,em:1000000,ifCost:2000000,crm:500000,total:7600000,roas:'674'},
+    {id:'promo_4',name:'자사몰 멤버십 위크',platform:'자사몰',
+     sales:28500000,meta:1800000,em:500000,ifCost:800000,crm:600000,total:3700000,roas:'770'},
+  ];
+
+  // ── Meta 광고 데이터 ──
+  window.metaCampaigns = window.metaCampaigns || [];
+  if(!window.metaCampaigns.length) {
+    window.metaCampaigns = [
+      {_id:'meta_1',campaign:'더콜디 무신사 기획전 - 리타겟팅',adset:'여성 20-34 패션 관심사',
+       spend:1240000,impression:284000,click:8420,purchase:124,revenue:15800000,
+       ctr:2.97,cpc:147,roas:12.7,startDate:y+'-'+m+'-01',endDate:y+'-'+m+'-15',platform:'무신사'},
+      {_id:'meta_2',campaign:'더콜디 무신사 기획전 - 신규',adset:'유사타겟 여성 20-29',
+       spend:980000,impression:412000,click:6830,purchase:89,revenue:11200000,
+       ctr:1.66,cpc:144,roas:11.4,startDate:y+'-'+m+'-01',endDate:y+'-'+m+'-15',platform:'무신사'},
+      {_id:'meta_3',campaign:'29CM 브랜드위크 - 전환',adset:'패션 관심사 타겟',
+       spend:1560000,impression:520000,click:11200,purchase:198,revenue:24800000,
+       ctr:2.15,cpc:139,roas:15.9,startDate:y+'-'+m+'-10',endDate:y+'-'+m+'-20',platform:'29CM'},
+      {_id:'meta_4',campaign:'이구데이 - 리타겟팅',adset:'장바구니 이탈 타겟',
+       spend:2100000,impression:680000,click:15600,purchase:312,revenue:39200000,
+       ctr:2.29,cpc:135,roas:18.7,startDate:y+'-'+m+'-20',endDate:y+'-'+m+'-30',platform:'무신사'},
+      {_id:'meta_5',campaign:'더콜디 공홈 위크 - 신규',adset:'신규 유입 여성',
+       spend:820000,impression:195000,click:4200,purchase:67,revenue:8400000,
+       ctr:2.15,cpc:195,roas:10.2,startDate:y+'-'+m+'-05',endDate:y+'-'+m+'-25',platform:'자사몰'},
+    ];
+  }
+
+  // ── Budget 예산 데이터 ──
+  window.budgetData = window.budgetData || {
+    total: 85000000,
+    used:  58400000,
+    items: [
+      {_id:'b1',category:'Meta 광고',budget:30000000,used:22800000,note:'이구데이 집행 완료'},
+      {_id:'b2',category:'인플루언서',budget:20000000,used:15600000,note:'시딩+유가 포함'},
+      {_id:'b3',category:'이메일/CRM',budget:5000000,used:3200000,note:'뉴스레터 3회'},
+      {_id:'b4',category:'콘텐츠 제작',budget:15000000,used:9800000,note:'스냅·영상 촬영'},
+      {_id:'b5',category:'프로모션 비용',budget:10000000,used:5400000,note:'쿠폰·할인 비용'},
+      {_id:'b6',category:'기타',budget:5000000,used:1600000,note:''},
+    ]
+  };
+
+  // ── Seeding 더미 데이터 ──
+  if(!window.seedData || !window.seedData.length) {
+    window.seedData = [
+      {_id:'seed_1',name:'김민영',id:'@minyyoung',ch:'Instagram',followers:'128K',status:'업로드',use2:'Y',uploadDate:dStr(5),product:'TCM apo T (black)',color:'블랙',size:'M',realName:'김민영',height:'165',weight:'49',phone:'010-1234-5001',zip:'06100',addr:'서울 강남구 테헤란로 123',tracking:'1234567890001',folderName:'minyyoung_0501',imgPath:''},
+      {_id:'seed_2',name:'이수진',id:'@soojin_life',ch:'Instagram',followers:'54K',status:'발송',use2:'',uploadDate:'',product:'TCM apo T (purple)',color:'퍼플',size:'S',realName:'이수진',height:'162',weight:'47',phone:'010-1234-5002',zip:'06200',addr:'서울 서초구 반포대로 456',tracking:'1234567890002',folderName:'',imgPath:''},
+      {_id:'seed_3',name:'박준호',id:'@junho_style',ch:'Youtube',followers:'89K',status:'스냅',use2:'Y',uploadDate:dStr(1),product:'TCM 3-way mini flap bag (black)',color:'블랙',size:'Free',realName:'박준호',height:'178',weight:'68',phone:'010-1234-5003',zip:'04200',addr:'서울 마포구 양화로 789',tracking:'1234567890003',folderName:'junho_style_0503',imgPath:''},
+      {_id:'seed_4',name:'오채원',id:'@chaewon_ootd',ch:'Tiktok',followers:'445K',status:'업로드',use2:'Y',uploadDate:dStr(2),product:'TCM logo hoodie (charcoal)',color:'차콜',size:'M',realName:'오채원',height:'163',weight:'46',phone:'010-1234-5004',zip:'05100',addr:'서울 광진구 능동로 101',tracking:'1234567890004',folderName:'chaewon_0502',imgPath:''},
+      {_id:'seed_5',name:'한지수',id:'@jisu_fit',ch:'Instagram',followers:'320K',status:'취합',use2:'',uploadDate:'',product:'TCM field cap (navy)',color:'네이비',size:'Free',realName:'한지수',height:'163',weight:'46',phone:'010-1234-5005',zip:'',addr:'',tracking:'',folderName:'',imgPath:''},
+      {_id:'seed_6',name:'최유리',id:'@yuri_ootd',ch:'X',followers:'28K',status:'회신',use2:'',uploadDate:'',product:'TCM wide denim pants (indigo)',color:'인디고',size:'S',realName:'최유리',height:'165',weight:'49',phone:'010-1234-5006',zip:'',addr:'',tracking:'',folderName:'',imgPath:''},
+    ];
+  }
+
+  // ── Celeb 더미 데이터 ──
+  if(!window.celebData || !window.celebData.length) {
+    window.celebData = [
+      {_id:'celeb_1',date:dStr(8),name:'혜리',ch:'Instagram',followers:'5100000',contentType:'피드',link:'https://instagram.com/p/sample_celeb1',views:'320000',likes:'24100',comments:'890',product:'TCM apo T (black)',note:'자발적 착용'},
+      {_id:'celeb_2',date:dStr(12),name:'오마이걸 유아',ch:'Instagram',followers:'2800000',contentType:'스토리',link:'https://instagram.com/p/sample_celeb2',views:'185000',likes:'',comments:'',product:'TCM logo hoodie (charcoal)',note:'협찬'},
+      {_id:'celeb_3',date:dStr(5),name:'박규영',ch:'Instagram',followers:'1200000',contentType:'릴스',link:'https://instagram.com/p/sample_celeb3',views:'420000',likes:'31200',comments:'1240',product:'TCM apo T (purple)',note:'자발적 착용'},
+      {_id:'celeb_4',date:dStr(3),name:'김채원',ch:'Instagram',followers:'3400000',contentType:'피드',link:'https://instagram.com/p/sample_celeb4',views:'280000',likes:'18900',comments:'670',product:'TCM 3-way mini flap bag (black)',note:'협찬'},
+      {_id:'celeb_5',date:dStr(15),name:'이세영',ch:'오프라인',followers:'-',contentType:'잡지화보',link:'',views:'',likes:'',comments:'',product:'TCM field cap (navy)',note:'W Korea 6월호'},
+    ];
+  }
+
+  // ── Organic 더미 데이터 ──
+  if(!window.organicData || !window.organicData.length) {
+    window.organicData = [
+      {_id:'org_1',date:dStr(1),source:'자동',ch:'Instagram',handle:'@_choiminjung',followers:'24000',caption:'TCM apo T 너무 예쁜데요?? 요즘 제 최애 브랜드 #ootd #thecoldestmoment',link:'https://instagram.com/p/org1',views:'8200',likes:'412',comments:'38',productTag:'TCM apo T (black)'},
+      {_id:'org_2',date:dStr(1),source:'자동',ch:'Tiktok',handle:'@daily_yeonhee',followers:'87000',caption:'더콜디 후드 너무 찰떡 이 브랜드 처음인데 탐난다 #TCM #thecoldestmoment',link:'https://tiktok.com/@daily_yeonhee/org2',views:'42000',likes:'2100',comments:'156',productTag:'TCM logo hoodie (charcoal)'},
+      {_id:'org_3',date:dStr(2),source:'직접',ch:'Blog',handle:'패션블로그A',followers:'15000',caption:'데일리룩 추천 :: 요즘 핫한 더콜디스트모먼트 TCM 아이템 리뷰',link:'https://blog.naver.com/org3',views:'3200',likes:'89',comments:'24',productTag:''},
+      {_id:'org_4',date:dStr(2),source:'자동',ch:'Instagram',handle:'@style_dasom',followers:'56000',caption:'TCM 미니 플랩백 대박이에요 더콜모 찐팬됨',link:'https://instagram.com/p/org4',views:'12000',likes:'891',comments:'67',productTag:'TCM 3-way mini flap bag (black)'},
+      {_id:'org_5',date:dStr(3),source:'자동',ch:'Youtube',handle:'StyleVlog',followers:'120000',caption:'봄 하울 영상 더콜디스트모먼트 TCM 아이템 포함',link:'https://youtube.com/watch?v=org5',views:'28000',likes:'1200',comments:'89',productTag:'여러 제품'},
+      {_id:'org_6',date:dStr(3),source:'자동',ch:'X',handle:'@TCM2018',followers:'12000',caption:'TCM 신상 너무 탐난다 ㅠㅠ apo T 이번에 질러야겠어',link:'https://x.com/org6',views:'4200',likes:'318',comments:'42',productTag:'TCM apo T'},
+      {_id:'org_7',date:dStr(4),source:'자동',ch:'Instagram',handle:'@h__jin_style',followers:'31000',caption:'주말 코디 공유 더콜디 데님 팬츠 넘 편해요 #TCM',link:'https://instagram.com/p/org7',views:'6100',likes:'318',comments:'22',productTag:'TCM wide denim pants (indigo)'},
+      {_id:'org_8',date:dStr(5),source:'직접',ch:'Instagram',handle:'@life_soyul',followers:'44000',caption:'TCM 필드캡 첫 착용 더콜모 너무 좋다 퀄리티 실화',link:'https://instagram.com/p/org8',views:'9400',likes:'567',comments:'45',productTag:'TCM field cap (navy)'},
+    ];
+  }
+
 };
 
 // 모든 함수 선언 완료 후 앱 시작
