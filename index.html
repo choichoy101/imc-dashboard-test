@@ -551,7 +551,16 @@ td.dc-td{padding:0!important;vertical-align:middle;}
     <div id="fb-status" style="font-size:11px;color:var(--color-text-tertiary);">● Firebase 초기화 중...</div>
     <span id="saving-badge" class="saving-badge">저장 중...</span>
   </div>
-  <button onclick="toggleSetupPanel()" class="fb-setup-link">🔧 Firebase 설정 방법 보기</button>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button onclick="saveAllToFile()" style="font-size:11px;padding:4px 12px;border-radius:6px;border:none;background:#185FA5;color:#fff;cursor:pointer;font-weight:500;display:flex;align-items:center;gap:4px;">
+      💾 전체 저장
+    </button>
+    <button onclick="loadFromFile()" style="font-size:11px;padding:4px 12px;border-radius:6px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;">
+      📂 불러오기
+    </button>
+    <input type="file" id="load-file-input" accept=".json" style="display:none;" onchange="handleFileLoad(event)">
+    <button onclick="toggleSetupPanel()" class="fb-setup-link">🔧 설정</button>
+  </div>
 </div>
 
 <!-- Firebase 설정 가이드 패널 -->
@@ -1522,7 +1531,39 @@ const SSHOW=['정산 안내','자료 수급','결재 상신'];
 const ABB={Instagram:'IG',Youtube:'YT',Tiktok:'TT',X:'X'};
 const PLTS=['무신사','29CM','자사몰'];
 const CHS=['Instagram','Youtube','Tiktok','X'];
-const BROWS=['Meta','EM','IF','CRM','부대 비용'];
+const BROWS=[
+  '대행사_셀럽',
+  '대행사_바이럴',
+  'META_자사몰',
+  'META_무신사',
+  'META_29CM',
+  'META_글로벌',
+  'NAVER',
+  'CRM',
+  'Earned Media',
+  'Influencer',
+  'Offline Store',
+  'ETC',
+];
+const BROWS_LABELS={
+  '대행사_셀럽':    '대행사 (셀럽)',
+  '대행사_바이럴':  '대행사 (바이럴)',
+  'META_자사몰':   'META — 자사몰',
+  'META_무신사':   'META — 무신사',
+  'META_29CM':    'META — 29CM',
+  'META_글로벌':   'META — 글로벌',
+  'NAVER':        'NAVER',
+  'CRM':          'CRM',
+  'Earned Media': 'Earned Media',
+  'Influencer':   'Influencer',
+  'Offline Store':'Offline Store',
+  'ETC':          'ETC',
+};
+const BROWS_GROUP={
+  '대행사': ['대행사_셀럽','대행사_바이럴'],
+  'META':   ['META_자사몰','META_무신사','META_29CM','META_글로벌'],
+  '기타':   ['NAVER','CRM','Earned Media','Influencer','Offline Store','ETC'],
+};
 const MONTH_LABELS=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
 const _kst=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Seoul'}));let curY=_kst.getFullYear(),curM=_kst.getMonth(),modalIdx=-1;
 
@@ -1695,8 +1736,60 @@ function buildFilters(){
   }
 }
 function buildBudgetHeader(){
-  const hd=document.getElementById('budget-hd');hd.innerHTML='';
-  [['월','60px'],...BROWS.map(r=>[r,'120px']),['총 예산','120px']].forEach(([t,w])=>{const th=document.createElement('th');th.textContent=t;th.style.width=w;hd.appendChild(th);});
+  // budget-hd(tr)의 부모(thead) 참조
+  const hd = document.getElementById('budget-hd');
+  if(!hd) return;
+  const thead = hd.closest('thead') || hd.parentElement;
+  if(!thead) return;
+
+  // thead 초기화 후 새로 그리기
+  thead.innerHTML = '';
+
+  // ── 그룹 헤더 행 ──
+  const groupRow = document.createElement('tr');
+  groupRow.style.background = 'var(--color-background-secondary)';
+
+  const monthTh = document.createElement('th');
+  monthTh.textContent = '월';
+  monthTh.rowSpan = 2;
+  monthTh.style.cssText = 'width:56px;vertical-align:middle;border-right:0.5px solid var(--color-border-tertiary);font-size:11px;';
+  groupRow.appendChild(monthTh);
+
+  Object.entries(BROWS_GROUP).forEach(([grp, items]) => {
+    const th = document.createElement('th');
+    th.textContent = grp === '기타' ? '' : grp;
+    th.colSpan = items.length;
+    th.style.cssText = 'text-align:center;font-size:10px;font-weight:700;border-bottom:0.5px solid var(--color-border-tertiary);padding:5px 0;letter-spacing:.04em;';
+    if(grp === 'META')  th.style.color = '#185FA5';
+    else if(grp === '대행사') th.style.color = '#7c3aed';
+    else th.style.color = 'var(--color-text-tertiary)';
+    groupRow.appendChild(th);
+  });
+
+  const totalTh = document.createElement('th');
+  totalTh.textContent = '합계';
+  totalTh.rowSpan = 2;
+  totalTh.style.cssText = 'width:110px;vertical-align:middle;text-align:right;font-weight:600;font-size:11px;';
+  groupRow.appendChild(totalTh);
+
+  const detailTh = document.createElement('th');
+  detailTh.textContent = '세부 내용';
+  detailTh.rowSpan = 2;
+  detailTh.style.cssText = 'min-width:180px;vertical-align:middle;color:var(--color-text-tertiary);font-size:10px;';
+  groupRow.appendChild(detailTh);
+
+  thead.appendChild(groupRow);
+
+  // ── 카테고리 서브헤더 행 ──
+  const subRow = document.createElement('tr');
+  subRow.style.background = 'var(--color-background-secondary)';
+  BROWS.forEach(r => {
+    const th = document.createElement('th');
+    th.textContent = BROWS_LABELS[r] || r;
+    th.style.cssText = 'width:100px;min-width:90px;font-size:9px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:4px 6px;color:var(--color-text-secondary);';
+    subRow.appendChild(th);
+  });
+  thead.appendChild(subRow);
 }
 function iSel(opts,val,cb,withEmpty){
   let h='<select onchange="'+cb+'">';if(withEmpty)h+='<option value=""'+(val===''?' selected':'')+'>-</option>';
@@ -2111,7 +2204,13 @@ window.renderBudget=function(){
         +memoIcon+tooltipHtml
         +'</div></td>';
     });
-    row+='<td style="font-weight:500;text-align:right;color:'+totColor+';">'+totWon+'</td></tr>';
+    row+='<td style="font-weight:500;text-align:right;color:'+totColor+';">'+totWon+'</td>';
+    // 세부 내용 칸
+    const memo=((window.budgetMemos||{})[mi]||'').replace(/"/g,'&quot;');
+    row+='<td><textarea data-mi="'+mi+'" placeholder="세부 내용 입력 (캠페인명, 대행사, 비고 등...)"'
+      +' style="width:100%;font-size:11px;padding:4px 6px;border:0.5px solid var(--color-border-tertiary);border-radius:4px;background:var(--color-background-primary);color:var(--color-text-primary);resize:vertical;min-height:32px;font-family:inherit;"'
+      +' onblur="budgetMemoBlur(this)">'+((window.budgetMemos||{})[mi]||'')+'</textarea></td>';
+    row+='</tr>';
     return row;
   }).join('');
 };
@@ -2197,7 +2296,13 @@ window.renderBudget=function(){
         +memoIcon+tooltipHtml
         +'</div></td>';
     });
-    row+='<td style="font-weight:500;text-align:right;color:'+totColor+';">'+totWon+'</td></tr>';
+    row+='<td style="font-weight:500;text-align:right;color:'+totColor+';">'+totWon+'</td>';
+    // 세부 내용 칸
+    const memo=((window.budgetMemos||{})[mi]||'').replace(/"/g,'&quot;');
+    row+='<td><textarea data-mi="'+mi+'" placeholder="세부 내용 입력 (캠페인명, 대행사, 비고 등...)"'
+      +' style="width:100%;font-size:11px;padding:4px 6px;border:0.5px solid var(--color-border-tertiary);border-radius:4px;background:var(--color-background-primary);color:var(--color-text-primary);resize:vertical;min-height:32px;font-family:inherit;"'
+      +' onblur="budgetMemoBlur(this)">'+((window.budgetMemos||{})[mi]||'')+'</textarea></td>';
+    row+='</tr>';
     return row;
   }).join('');
 };
@@ -2225,6 +2330,12 @@ function budgetBlur(el){
   window.fbSaveBudgetRow(mi);
   window.renderBudget();
   window.updateSummary();
+}
+function budgetMemoBlur(el){
+  const mi=+el.dataset.mi;
+  if(!window.budgetMemos)window.budgetMemos={};
+  window.budgetMemos[mi]=el.value;
+  if(window.fbSaveBudget) window.fbSaveBudget('budgetMemos', String(mi), {memo:el.value});
 }
 /* ══ 초기화 실행 함수 ══ */
 
@@ -4825,6 +4936,112 @@ window.fbSetSheetUrl = fbSetSheetUrl;
   if (saved) {
     setTimeout(() => fbLoadLikesFromSheet(saved), 1500);
   }
+})();
+
+
+/* ══ 전체 저장 / 불러오기 (Firebase 없이도 동작) ══ */
+function saveAllToFile() {
+  const data = {
+    _version: '1.0',
+    _savedAt: new Date().toISOString(),
+    promos:    window.promos   || [],
+    creators:  window.creators || [],
+    products:  window.products || [],
+    budgets:   window.budgets  || [],
+    budgetMemos: window.budgetMemos || {},
+    seedData:  window.seedData  || [],
+    celebData: window.celebData || [],
+    organicData: window.organicData || [],
+  };
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'IMC_Dashboard_Data_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  // 저장 중 배지 표시
+  const badge = document.getElementById('saving-badge');
+  if(badge){ badge.textContent='✅ 저장 완료!'; badge.style.display='inline-block'; setTimeout(()=>{badge.style.display='none';},2000); }
+}
+window.saveAllToFile = saveAllToFile;
+
+function loadFromFile() {
+  document.getElementById('load-file-input').click();
+}
+window.loadFromFile = loadFromFile;
+
+function handleFileLoad(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if(data.promos)      window.promos      = data.promos;
+      if(data.creators)    window.creators    = data.creators;
+      if(data.products)    window.products    = data.products;
+      if(data.budgets)     window.budgets     = data.budgets;
+      if(data.budgetMemos) window.budgetMemos = data.budgetMemos;
+      if(data.seedData)    window.seedData    = data.seedData;
+      if(data.celebData)   window.celebData   = data.celebData;
+      if(data.organicData) window.organicData = data.organicData;
+      // 전체 리렌더
+      if(window.applyPromoFilter)    window.applyPromoFilter();
+      if(window.applyListFilter)     window.applyListFilter();
+      if(window.applyFeedbackFilter) window.applyFeedbackFilter();
+      if(window.renderBudget)        window.renderBudget();
+      if(window.seedRender)          window.seedRender();
+      if(window.celebRender)         window.celebRender();
+      if(window.orgRender)           window.orgRender();
+      if(window.ovRender)            window.ovRender(_ovCurrentView);
+      alert('✅ 데이터 불러오기 완료! (' + (data._savedAt||'').slice(0,10) + ' 저장본)');
+    } catch(err) {
+      alert('❌ 파일 오류: ' + err.message);
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+window.handleFileLoad = handleFileLoad;
+
+/* localStorage 자동 저장 (페이지 이탈 전) */
+window.addEventListener('beforeunload', function() {
+  try {
+    const data = {
+      promos:    window.promos   || [],
+      creators:  window.creators || [],
+      products:  window.products || [],
+      budgets:   window.budgets  || [],
+      budgetMemos: window.budgetMemos || {},
+      seedData:  window.seedData  || [],
+      celebData: window.celebData || [],
+      organicData: window.organicData || [],
+    };
+    localStorage.setItem('imc_dashboard_autosave', JSON.stringify(data));
+  } catch(e) {}
+});
+
+/* 페이지 로드 시 localStorage에서 복원 */
+(function restoreFromLocalStorage() {
+  try {
+    const saved = localStorage.getItem('imc_dashboard_autosave');
+    if(!saved) return;
+    const data = JSON.parse(saved);
+    // Firebase가 없을 때만 복원 (Firebase 있으면 Firestore 우선)
+    if(!window.isFirebaseReady) {
+      if(data.promos?.length)      window.promos      = data.promos;
+      if(data.creators?.length)    window.creators    = data.creators;
+      if(data.products?.length)    window.products    = data.products;
+      if(data.budgets?.length)     window.budgets     = data.budgets;
+      if(data.budgetMemos)         window.budgetMemos = data.budgetMemos;
+      if(data.seedData?.length)    window.seedData    = data.seedData;
+      if(data.celebData?.length)   window.celebData   = data.celebData;
+      if(data.organicData?.length) window.organicData = data.organicData;
+      console.log('ℹ️ localStorage 자동저장 복원 완료');
+    }
+  } catch(e) {}
 })();
 
 function runInit(){
