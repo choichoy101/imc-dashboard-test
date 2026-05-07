@@ -1263,7 +1263,7 @@ td.dc-td{padding:0!important;vertical-align:middle;}
 
 <!-- BUDGET -->
 <div id="pg-budget" style="display:none;">
-  <div class="tbl-wrap"><table><thead><tr id="budget-hd"></tr></thead><tbody id="budget-body"></tbody></table></div>
+  <div style="overflow-x:auto;"><table id="budget-table" style="width:100%;border-collapse:collapse;font-size:11px;white-space:nowrap;"><thead id="budget-thead"></thead><tbody id="budget-body"></tbody></table></div>
 </div>
 
 <!-- ITEM -->
@@ -1313,10 +1313,14 @@ td.dc-td{padding:0!important;vertical-align:middle;}
     <span style="font-size:11px;color:var(--color-text-tertiary);">직접 추가한 데이터도 Firebase에 자동 저장돼요</span>
   </div>
   <div class="tbl-wrap"><table><thead><tr>
-    <th style="width:68px;">플랫폼</th><th style="width:80px;">UID</th><th style="width:80px;">상품 코드</th>
-    <th style="width:120px;">제품명</th><th style="width:80px;">태그 01</th><th style="width:80px;">태그 02</th>
-    <th style="width:80px;">태그 03</th><th style="width:80px;">태그 04</th><th style="width:80px;">태그 05</th>
-    <th style="width:22px;"></th>
+    <th style="width:80px;padding:6px 8px;font-size:10px;font-weight:500;color:var(--color-text-tertiary);">플랫폼</th>
+    <th style="width:90px;padding:6px 8px;font-size:10px;font-weight:500;color:var(--color-text-tertiary);">UID</th>
+    <th style="width:90px;padding:6px 8px;font-size:10px;font-weight:500;color:var(--color-text-tertiary);">상품 코드</th>
+    <th style="min-width:150px;padding:6px 8px;font-size:10px;font-weight:500;color:var(--color-text-tertiary);">제품명</th>
+    <th style="width:120px;padding:6px 8px;font-size:10px;font-weight:500;color:var(--color-text-tertiary);">TAG</th>
+    <th style="width:110px;padding:6px 8px;font-size:10px;font-weight:500;color:var(--color-text-tertiary);text-align:right;">원가</th>
+    <th style="width:90px;padding:6px 8px;font-size:10px;font-weight:500;color:var(--color-text-tertiary);text-align:right;">수수료율</th>
+    <th style="width:22px;padding:6px 8px;"></th>
   </tr></thead><tbody id="product-body"></tbody></table></div>
 </div>
 
@@ -1741,69 +1745,82 @@ function buildFilters(){
   }
 }
 function buildBudgetHeader(){
-  const hd = document.getElementById('budget-hd');
-  if(!hd) return;
-  const thead = hd.closest('thead') || hd.parentElement;
+  const thead = document.getElementById('budget-thead');
   if(!thead) return;
   thead.innerHTML = '';
 
-  const thS = (w,extra='') => `width:${w};padding:5px 8px;font-size:10px;font-weight:500;white-space:nowrap;${extra}`;
-  const groupBorderL = 'border-left:2px solid var(--color-border-secondary);';
+  const BL = 'border-left:2.5px solid var(--color-border-secondary);';
+  const thBase = 'padding:5px 8px;font-size:10px;font-weight:500;white-space:nowrap;background:var(--color-background-secondary);';
 
   // ── 그룹 헤더 행 ──
-  const groupRow = document.createElement('tr');
-  groupRow.style.background = 'var(--color-background-secondary)';
+  const g1 = document.createElement('tr');
 
-  // 월 헤더 (rowspan=2)
-  const monthTh = document.createElement('th');
-  monthTh.textContent = '월'; monthTh.rowSpan = 2;
-  monthTh.style.cssText = thS('48px','vertical-align:middle;border-right:2px solid var(--color-border-secondary);text-align:center;');
-  groupRow.appendChild(monthTh);
-  // 구분 컬럼 (계획/실적/달성률)
-  const divTh=document.createElement('th');
-  divTh.textContent='구분'; divTh.rowSpan=2;
-  divTh.style.cssText=thS('44px','vertical-align:middle;color:var(--color-text-tertiary);border-right:2px solid var(--color-border-secondary);');
-  groupRow.appendChild(divTh);
+  // 월 (rowspan=3)
+  const th월 = document.createElement('th');
+  th월.textContent='월'; th월.rowSpan=3;
+  th월.style.cssText=thBase+'width:46px;text-align:center;vertical-align:middle;'+BL;
+  g1.appendChild(th월);
 
-  BROWS_GROUP_DEF.forEach((grp, gi) => {
-    if(grp.key === 'single'){
-      // 나머지 5개는 각각 rowspan=2 단일 컬럼
-      grp.cols.forEach((col, ci) => {
-        const th = document.createElement('th');
-        th.textContent = col.label; th.rowSpan = 2;
-        th.style.cssText = thS('100px',`vertical-align:middle;color:var(--color-text-secondary);${ci===0?groupBorderL:''}`);
-        groupRow.appendChild(th);
+  // 구분 (rowspan=3)
+  const th구분 = document.createElement('th');
+  th구분.textContent='구분'; th구분.rowSpan=3;
+  th구분.style.cssText=thBase+'width:44px;vertical-align:middle;color:var(--color-text-tertiary);'+BL;
+  g1.appendChild(th구분);
+
+  // 그룹 헤더 (대행사, Meta, 나머지)
+  BROWS_GROUP_DEF.forEach((grp,gi)=>{
+    if(grp.key==='single'){
+      // 나머지 5개: rowspan=3 단일 헤더
+      grp.cols.forEach((col,ci)=>{
+        const th=document.createElement('th');
+        th.textContent=col.label; th.rowSpan=3;
+        th.style.cssText=thBase+'width:96px;vertical-align:middle;text-align:right;color:var(--color-text-secondary);'+(ci===0?BL:'');
+        g1.appendChild(th);
       });
     } else {
-      // 대행사/Meta는 그룹 헤더
-      const th = document.createElement('th');
-      th.textContent = grp.label; th.colSpan = grp.cols.length;
-      th.style.cssText = `text-align:center;font-size:11px;font-weight:700;color:${grp.color};padding:4px 0;border-bottom:0.5px solid var(--color-border-tertiary);${gi===0?'':groupBorderL}`;
-      groupRow.appendChild(th);
+      const th=document.createElement('th');
+      th.textContent=grp.label; th.colSpan=grp.cols.length;
+      th.style.cssText=thBase+'text-align:center;font-weight:700;color:'+grp.color+';border-bottom:0.5px solid var(--color-border-tertiary);'+(gi===0?BL:'');
+      g1.appendChild(th);
     }
   });
 
-  // 합계 + 비고 (rowspan=2)
-  ['합계','비고'].forEach((t,i) => {
-    const th = document.createElement('th');
-    th.textContent = t; th.rowSpan = 2;
-    th.style.cssText = thS(i===0?'100px':'160px',`vertical-align:middle;${i===0?'text-align:right;font-weight:600;border-left:2px solid var(--color-border-secondary);':'color:var(--color-text-tertiary);'}`);
-    groupRow.appendChild(th);
-  });
-  thead.appendChild(groupRow);
+  // 합계 (rowspan=3)
+  const th합 = document.createElement('th');
+  th합.textContent='합계'; th합.rowSpan=3;
+  th합.style.cssText=thBase+'width:100px;text-align:right;font-weight:700;vertical-align:middle;'+BL;
+  g1.appendChild(th합);
 
-  // ── 서브헤더 행 (대행사/Meta 중분류만) ──
-  const subRow = document.createElement('tr');
-  subRow.style.background = 'var(--color-background-secondary)';
-  BROWS_GROUP_DEF.filter(g=>g.key!=='single').forEach((grp, gi) => {
-    grp.cols.forEach((col, ci) => {
-      const th = document.createElement('th');
-      th.textContent = col.label;
-      th.style.cssText = thS('100px',`color:var(--color-text-secondary);${gi===0&&ci===0?'':ci===0?groupBorderL:''}`);
-      subRow.appendChild(th);
+  // 비고 (rowspan=3)
+  const th비 = document.createElement('th');
+  th비.textContent='비고'; th비.rowSpan=3;
+  th비.style.cssText=thBase+'min-width:150px;vertical-align:middle;color:var(--color-text-tertiary);'+BL;
+  g1.appendChild(th비);
+
+  thead.appendChild(g1);
+
+  // ── 중분류 헤더 행 (대행사/Meta) ──
+  const g2 = document.createElement('tr');
+  BROWS_GROUP_DEF.filter(g=>g.key!=='single').forEach((grp,gi)=>{
+    grp.cols.forEach((col,ci)=>{
+      const th=document.createElement('th');
+      th.textContent=col.label;
+      th.style.cssText=thBase+'width:96px;text-align:right;color:'+grp.color+';'+(gi===0&&ci===0?BL:'');
+      g2.appendChild(th);
     });
   });
-  thead.appendChild(subRow);
+  thead.appendChild(g2);
+
+  // ── 계획/실적/달성률 서브헤더 행 ──
+  const g3 = document.createElement('tr');
+  const nonSingleCount = BROWS_GROUP_DEF.filter(g=>g.key!=='single').reduce((s,g)=>s+g.cols.length,0);
+  for(let ci=0;ci<nonSingleCount;ci++){
+    const th=document.createElement('th');
+    th.style.cssText=thBase+'text-align:right;font-size:9px;color:var(--color-text-tertiary);border-top:0.5px dashed var(--color-border-tertiary);'+(ci===0?BL:'');
+    th.innerHTML='계↑ 실↓';
+    g3.appendChild(th);
+  }
+  thead.appendChild(g3);
 }
 function iSel(opts,val,cb,withEmpty){
   let h='<select onchange="'+cb+'">';if(withEmpty)h+='<option value=""'+(val===''?' selected':'')+'>-</option>';
@@ -2283,16 +2300,37 @@ window.renderBudget=function(){
 
 /* ══ ITEM / MODAL ══ */
 window.renderProducts=function(){
-  document.getElementById('product-body').innerHTML=window.products.map((p,i)=>{
-    let row='<tr>'
-      +'<td>'+iSel(PLTS,p.platform,'window.products['+i+'].platform=this.value;fbSaveProducts();')+'</td>'
-      +'<td><input type="text" value="'+p.uid+'" onchange="window.products['+i+'].uid=this.value;fbSaveProducts();"></td>'
-      +'<td><input type="text" value="'+p.code+'" onchange="window.products['+i+'].code=this.value;autoFill('+i+',this.value);fbSaveProducts();"></td>'
-      +'<td><input type="text" value="'+p.name+'" onchange="window.products['+i+'].name=this.value;fbSaveProducts();"></td>';
-    ['tag1','tag2','tag3','tag4','tag5'].forEach(t=>{
-      row+='<td><input type="text" value="'+(p[t]||'')+'" onchange="window.products['+i+'].'+t+'=this.value;fbSaveProducts();"></td>';
-    });
-    return row+'<td><span class="del-btn" onclick="window.products.splice('+i+',1);fbSaveProducts();window.renderProducts();">&#10005;</span></td></tr>';
+  const inpS='width:100%;border:none;background:transparent;font-size:11px;padding:2px 4px;color:var(--color-text-primary);font-family:inherit;';
+  const tdS='padding:5px 8px;border-bottom:0.5px solid var(--color-border-tertiary);font-size:11px;';
+  document.getElementById('product-body').innerHTML=(window.products||[]).map((p,i)=>{
+    // TAG: tag1~tag5 합쳐서 하나로 표시
+    const tagVal=[p.tag1,p.tag2,p.tag3,p.tag4,p.tag5].filter(Boolean).join(', ');
+    // 원가 회계 형식
+    const costVal=p.cost?'₩'+Number(p.cost).toLocaleString('ko-KR'):'';
+    // 수수료율 (숫자 그대로 → 표시만 % 붙이기)
+    const feeVal=p.fee||p.feeRate||'';
+    return `<tr>
+      <td style="${tdS}">${iSel(PLTS,p.platform,'window.products['+i+'].platform=this.value;fbSaveProducts();window.renderProducts();')}</td>
+      <td style="${tdS}"><input type="text" value="${p.uid||''}" style="${inpS}" onchange="window.products[${i}].uid=this.value;fbSaveProducts();"></td>
+      <td style="${tdS}"><input type="text" value="${p.code||''}" style="${inpS}" onchange="window.products[${i}].code=this.value;autoFill(${i},this.value);fbSaveProducts();"></td>
+      <td style="${tdS}"><input type="text" value="${p.name||''}" style="${inpS}font-weight:500;" onchange="window.products[${i}].name=this.value;fbSaveProducts();"></td>
+      <td style="${tdS}">
+        <input type="text" value="${tagVal}" style="${inpS}color:var(--color-text-secondary);"
+          placeholder="태그1, 태그2..."
+          onchange="(function(v){const t=v.split(',').map(s=>s.trim());['tag1','tag2','tag3','tag4','tag5'].forEach((k,j)=>{window.products[${i}][k]=t[j]||'';});fbSaveProducts();})(this.value)">
+      </td>
+      <td style="${tdS};text-align:right;">
+        <input type="text" value="${costVal}" style="${inpS}text-align:right;font-family:monospace;" placeholder="₩0"
+          onfocus="this.value=this.value.replace(/[₩,]/g,'')"
+          onblur="const n=parseInt(this.value.replace(/[^0-9]/g,''))||0;window.products[${i}].cost=n;this.value=n?'₩'+n.toLocaleString('ko-KR'):'';fbSaveProducts();">
+      </td>
+      <td style="${tdS};text-align:right;">
+        <input type="text" value="${feeVal?feeVal+'%':''}" style="${inpS}text-align:right;" placeholder="0%"
+          onfocus="this.value=this.value.replace('%','')"
+          onblur="const n=parseFloat(this.value.replace(/[^0-9.]/g,''))||0;window.products[${i}].fee=n;this.value=n?n+'%':'';fbSaveProducts();">
+      </td>
+      <td style="${tdS}"><span class="del-btn" onclick="window.products.splice(${i},1);fbSaveProducts();window.renderProducts();">&#10005;</span></td>
+    </tr>`;
   }).join('');
 };
 function autoFill(idx,code){
@@ -4793,7 +4831,7 @@ function seedBuildTable(){
   };
 
   tbody.innerHTML = data.map((r,ri)=>{
-    const sc = STATUS_COLORS[r.status]||{bg:'#f3f4f6',color:'#6b7280'};
+    const sc = STATUS_COLOR_MAP[r.status]||{bg:'#F3F4F6',color:'#6B7280',border:'#D1D5DB'};
     const tag = r.tag || getTagByProduct(r.product) || '';
 
     // 상태 - 더블클릭 드롭다운
@@ -4848,10 +4886,28 @@ function seedBuildTable(){
   }).join('') || `<tr><td colspan="20" style="text-align:center;padding:20px;color:var(--color-text-tertiary);">데이터가 없어요. + 추가 버튼을 눌러 크리에이터를 등록해주세요.</td></tr>`;
 }
 function seedAddRow(){
-  window.seedData=window.seedData||[];
-  window.seedData.push({_id:'seed_'+Date.now(),name:'',id:'',ch:'IG',followers:'',status:'컨택',use2:'',uploadDate:'',product:'',color:'',size:'',realName:'',height:'',weight:'',phone:'',zip:'',addr:'',tracking:'',folderName:'',imgPath:''});
-  if(window.fbSaveBatch) window.fbSaveBatch('seeding',window.seedData);
+  window.seedData = window.seedData || [];
+  window.seedData.push({
+    _id:'seed_'+Date.now(),
+    name:'', id:'', ch:'Instagram', followers:'',
+    status:'리스트업', use2:'', uploadDate:'',
+    product:'', color:'', size:'', tag:'',
+    realName:'', height:'', weight:'',
+    phone:'', zip:'', addr:'',
+    tracking:'', folderName:'', imgPath:''
+  });
+  if(window.fbSaveBatch) window.fbSaveBatch('seeding', window.seedData);
+  // 상태 필터 초기화 후 리렌더 (전체 보기로)
+  _seedStatus = 'all';
+  _seedCh = 'all';
+  document.querySelectorAll('#seed-status-btns .chip').forEach((c,i)=>{c.classList.toggle('active',i===0);});
+  document.querySelectorAll('#seed-ch-btns .ov-pbtn').forEach((b,i)=>{b.classList.toggle('active',i===0);});
   seedRender();
+  // 마지막 행으로 스크롤
+  setTimeout(()=>{
+    const tbody = document.getElementById('seed-tbody');
+    if(tbody) tbody.lastElementChild?.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }, 100);
 }
 function seedEdit(ri){/* 수정 모달 - 추후 구현 */ alert('수정 기능은 각 셀 더블클릭으로 입력 예정');}
 function seedDel(ri){if(!confirm('삭제할까요?'))return;window.seedData.splice(ri,1);if(window.fbSaveBatch)window.fbSaveBatch('seeding',window.seedData);seedRender();}
@@ -5049,16 +5105,23 @@ function celebUpdateKPI(){
   if(s('celeb-kpi-er'))s('celeb-kpi-er').textContent=avgER!=='-'?avgER+'%':'-';
 }
 function celebBuildTable(){
-  const tbody=document.getElementById('celeb-tbody'); if(!tbody)return;
+  const tbody=document.getElementById('celeb-tbody');
+  if(!tbody)return;
   const data=(window.celebData||[]).filter(r=>{
     if(_celebCh!=='all'&&r.ch!==_celebCh)return false;
     if(_celebMonth!=='all'&&r.date&&!r.date.startsWith(_celebMonth))return false;
     return true;
   });
 
-  const CH_OPTS    = ['Instagram','Youtube','Tiktok','X','Media','Offline'];
-  const EXP_OPTS   = ['광고','협찬','오가닉','기타'];
-  const CONT_OPTS  = ['피드','스토리','릴스','쇼츠','브랜디드','PPL','직접 기입'];
+  // 전역 상수
+  const CH_OPTS=['Instagram','Youtube','Tiktok','X','Media','Offline'];
+  const CH_COLOR={Instagram:{bg:'#fce7f3',color:'#9d174d'},Youtube:{bg:'#fee2e2',color:'#991b1b'},
+    Tiktok:{bg:'#f3f4f6',color:'#111827'},X:{bg:'#dbeafe',color:'#1e40af'},
+    Media:{bg:'#ede9fe',color:'#5b21b6'},Offline:{bg:'#d1fae5',color:'#065f46'}};
+  const EXP_OPTS=['광고','협찬','오가닉','기타'];
+  const EXP_COLOR={광고:{bg:'#dbeafe',color:'#1e40af'},협찬:{bg:'#d1fae5',color:'#065f46'},
+    오가닉:{bg:'#fef3c7',color:'#92400e'},기타:{bg:'#f3f4f6',color:'#6b7280'}};
+  const CONT_OPTS=['피드','스토리','릴스','쇼츠','브랜디드','PPL','직접 기입'];
 
   function fmtFollower(v){
     const n=parseInt(String(v).replace(/[^0-9]/g,''));
@@ -5068,39 +5131,41 @@ function celebBuildTable(){
     return String(n);
   }
 
-  const tdS='padding:5px 7px;border-bottom:0.5px solid var(--color-border-tertiary);font-size:11px;';
+  const tdS='padding:5px 7px;border-bottom:0.5px solid var(--color-border-tertiary);font-size:11px;vertical-align:middle;';
 
-  tbody.innerHTML = data.map((r,ri)=>{
-    // 채널 드롭다운
-    const chSel=`<select onchange="celebUpdateField(${ri},'ch',this.value)"
-      style="font-size:10px;padding:2px 4px;border:0.5px solid var(--color-border-tertiary);border-radius:6px;background:var(--color-background-primary);cursor:pointer;">
-      ${CH_OPTS.map(c=>`<option value="${c}"${r.ch===c?' selected':''}>${c}</option>`).join('')}
-    </select>`;
+  tbody.innerHTML=data.map((r,ri)=>{
+    // 날짜+이름 병합
+    const prevR=ri>0?data[ri-1]:null;
+    const isMerged=prevR&&prevR.date===r.date&&prevR.name===r.name;
+    let sameCount=1;
+    for(let k=ri+1;k<data.length;k++){if(data[k].date===r.date&&data[k].name===r.name)sameCount++;else break;}
 
-    // 노출 유형 드롭다운
-    const expSel=`<select onchange="celebUpdateField(${ri},'exposureType',this.value)"
-      style="font-size:10px;padding:2px 4px;border:0.5px solid var(--color-border-tertiary);border-radius:6px;background:var(--color-background-primary);cursor:pointer;">
-      <option value="">-</option>
-      ${EXP_OPTS.map(c=>`<option value="${c}"${r.exposureType===c?' selected':''}>${c}</option>`).join('')}
-    </select>`;
+    const dateTd=isMerged?'':`<td style="${tdS};font-weight:500;" rowspan="${sameCount}" ondblclick="celebEdit(this,${ri},'date','date')">${r.date||'-'}</td>`;
+    const nameTd=isMerged?'':`<td style="${tdS};font-weight:600;" rowspan="${sameCount}" ondblclick="celebEdit(this,${ri},'name')">${r.name||'-'}</td>`;
 
-    // 콘텐츠 유형 드롭다운
-    const contSel=`<select onchange="celebContType(${ri},this)"
-      style="font-size:10px;padding:2px 4px;border:0.5px solid var(--color-border-tertiary);border-radius:6px;background:var(--color-background-primary);cursor:pointer;">
-      <option value="">-</option>
-      ${CONT_OPTS.map(c=>`<option value="${c}"${r.contentType===c?' selected':''}>${c}</option>`).join('')}
-    </select>`;
+    // 채널 뱃지
+    const chc=CH_COLOR[r.ch]||{bg:'#f3f4f6',color:'#6b7280'};
+    const chBadge=`<span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:500;cursor:pointer;background:${chc.bg};color:${chc.color};">${r.ch||'선택'}</span>`;
 
-    // 비용 회계 형식
-    const costFmt = r.cost ? '₩'+Number(String(r.cost).replace(/[^0-9]/g,'')).toLocaleString('ko-KR') : '-';
+    // 노출 유형 뱃지
+    const expc=EXP_COLOR[r.exposureType]||{bg:'transparent',color:'var(--color-text-tertiary)'};
+    const expBadge=`<span style="padding:2px 8px;border-radius:12px;font-size:10px;cursor:pointer;background:${expc.bg};color:${expc.color};">${r.exposureType||'-'}</span>`;
+
+    // 콘텐츠 유형
+    const contBadge=`<span style="font-size:11px;cursor:pointer;">${r.contentType||'-'}</span>`;
+
+    // 비용 회계
+    const costFmt=r.cost?'₩'+Number(String(r.cost).replace(/[^0-9]/g,'')).toLocaleString('ko-KR'):'-';
+
+    // 팔로워 K/M
+    const followerFmt=fmtFollower(r.followers);
 
     return `<tr style="border-bottom:0.5px solid var(--color-border-tertiary);">
-      <td style="${tdS}" ondblclick="celebEdit(this,${ri},'date','date')">${r.date||'-'}</td>
-      <td style="${tdS};font-weight:600;" ondblclick="celebEdit(this,${ri},'name')">${r.name||'-'}</td>
-      <td style="${tdS}">${chSel}</td>
-      <td style="${tdS};text-align:right;" ondblclick="celebEdit(this,${ri},'followers')">${fmtFollower(r.followers)}</td>
-      <td style="${tdS}">${expSel}</td>
-      <td style="${tdS}">${contSel}</td>
+      ${dateTd}${nameTd}
+      <td style="${tdS}" ondblclick="celebDropdown(this,${ri},'ch',CH_OPTS,CH_COLOR)">${chBadge}</td>
+      <td style="${tdS};text-align:right;" ondblclick="celebEdit(this,${ri},'followers')">${followerFmt}</td>
+      <td style="${tdS}" ondblclick="celebDropdown(this,${ri},'exposureType',EXP_OPTS,EXP_COLOR)">${expBadge}</td>
+      <td style="${tdS}" ondblclick="celebDropdown(this,${ri},'contentType',CONT_OPTS,{})">${contBadge}</td>
       <td style="${tdS};text-align:right;font-family:monospace;" ondblclick="celebEdit(this,${ri},'cost')">${costFmt}</td>
       <td style="${tdS}">${r.link?`<a href="${r.link}" target="_blank" style="color:#185FA5;font-size:10px;">링크↗</a>`:'-'}</td>
       <td style="${tdS};text-align:right;" ondblclick="celebEdit(this,${ri},'views')">${r.views||'-'}</td>
@@ -5109,9 +5174,11 @@ function celebBuildTable(){
       <td style="${tdS}" ondblclick="celebEdit(this,${ri},'product')">${r.product||'-'}</td>
       <td style="${tdS}" ondblclick="celebEdit(this,${ri},'color')">${r.color||'-'}</td>
       <td style="${tdS}" ondblclick="celebEdit(this,${ri},'note')">${r.note||'-'}</td>
+      <td style="${tdS}"><button onclick="celebDel(${ri})" style="font-size:10px;padding:2px 7px;border-radius:4px;border:0.5px solid #fca5a5;background:transparent;cursor:pointer;color:#c0392b;">삭제</button></td>
     </tr>`;
-  }).join('') || `<tr><td colspan="14" style="text-align:center;padding:20px;color:var(--color-text-tertiary);">데이터가 없어요. + 추가 버튼으로 셀럽 노출 건을 등록해주세요.</td></tr>`;
+  }).join('')||`<tr><td colspan="14" style="text-align:center;padding:20px;color:var(--color-text-tertiary);">데이터가 없어요. + 추가 버튼으로 셀럽 노출 건을 등록해주세요.</td></tr>`;
 }
+
 function celebAddRow(){
   window.celebData=window.celebData||[];
   window.celebData.push({_id:'celeb_'+Date.now(),date:'',name:'',ch:'IG',followers:'',contentType:'피드',link:'',views:'',likes:'',comments:'',product:'',note:''});
