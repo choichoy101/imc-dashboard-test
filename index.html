@@ -1117,7 +1117,8 @@ td.dc-td{padding:0!important;vertical-align:middle;}
         <button class="ov-pbtn" onclick="celebSetCh('Youtube',this)">Youtube</button>
         <button class="ov-pbtn" onclick="celebSetCh('Tiktok',this)">Tiktok</button>
         <button class="ov-pbtn" onclick="celebSetCh('X',this)">X</button>
-        <button class="ov-pbtn" onclick="celebSetCh('오프라인',this)">오프라인</button>
+        <button class="ov-pbtn" onclick="celebSetCh('Media',this)">Media</button>
+        <button class="ov-pbtn" onclick="celebSetCh('Offline',this)">Offline</button>
       </div>
     </div>
   </div>
@@ -1130,7 +1131,7 @@ td.dc-td{padding:0!important;vertical-align:middle;}
     <div style="overflow-x:auto;">
       <table style="width:100%;border-collapse:collapse;font-size:11px;white-space:nowrap;">
         <thead><tr style="background:var(--color-background-secondary);">
-<th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">노출일</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">셀럽</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">채널</th><th style="padding:6px 8px;text-align:right;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">팔로워</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">노출 유형</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">콘텐츠 유형</th><th style="padding:6px 8px;text-align:right;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">비용</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">링크</th><th style="padding:6px 8px;text-align:right;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">조회수</th><th style="padding:6px 8px;text-align:right;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">좋아요</th><th style="padding:6px 8px;text-align:right;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">댓글</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">상품</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">컬러</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">비고</th><th style="padding:6px 8px;font-size:10px;"></th>
+<th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">노출일</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">구분</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">셀럽</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">노출 유형</th><th style="padding:6px 8px;text-align:right;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">비용</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">채널</th><th style="padding:6px 8px;text-align:right;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">팔로워</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">콘텐츠 유형</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">링크</th><th style="padding:6px 8px;text-align:right;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">조회수</th><th style="padding:6px 8px;text-align:right;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">좋아요</th><th style="padding:6px 8px;text-align:right;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">댓글</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">상품</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">컬러</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">비고</th><th style="padding:6px 8px;font-size:10px;"></th>
         </tr></thead>
         <tbody id="celeb-tbody"></tbody>
       </table>
@@ -1312,11 +1313,11 @@ td.dc-td{padding:0!important;vertical-align:middle;}
     <button class="add-btn" style="margin-bottom:0;" onclick="addProduct()">+ 상품 직접 추가</button>
     <span style="font-size:11px;color:var(--color-text-tertiary);">직접 추가한 데이터도 Firebase에 자동 저장돼요</span>
   </div>
-  <div class="tbl-wrap"><table><thead><tr>
+  <div class="tbl-wrap"><table style="table-layout:fixed;width:100%;"><thead><tr>
     <th style="width:80px;padding:6px 8px;font-size:10px;font-weight:500;color:var(--color-text-tertiary);">플랫폼</th>
     <th style="width:90px;padding:6px 8px;font-size:10px;font-weight:500;color:var(--color-text-tertiary);">UID</th>
     <th style="width:90px;padding:6px 8px;font-size:10px;font-weight:500;color:var(--color-text-tertiary);">상품 코드</th>
-    <th style="min-width:150px;padding:6px 8px;font-size:10px;font-weight:500;color:var(--color-text-tertiary);">제품명</th>
+    <th style="width:160px;max-width:160px;padding:6px 8px;font-size:10px;font-weight:500;color:var(--color-text-tertiary);">제품명</th>
     <th style="width:120px;padding:6px 8px;font-size:10px;font-weight:500;color:var(--color-text-tertiary);">TAG</th>
     <th style="width:110px;padding:6px 8px;font-size:10px;font-weight:500;color:var(--color-text-tertiary);text-align:right;">원가</th>
     <th style="width:90px;padding:6px 8px;font-size:10px;font-weight:500;color:var(--color-text-tertiary);text-align:right;">수수료율</th>
@@ -1749,79 +1750,55 @@ function buildBudgetHeader(){
   if(!thead) return;
   thead.innerHTML = '';
 
-  const BL = 'border-left:2.5px solid var(--color-border-secondary);';
-  const thBase = 'padding:5px 8px;font-size:10px;font-weight:500;white-space:nowrap;background:var(--color-background-secondary);';
+  const BS = 'border-left:2px solid var(--color-border-secondary);'; // 그룹 구분선
+  const thB = (extra='') => `padding:5px 8px;font-size:10px;font-weight:500;background:var(--color-background-secondary);white-space:nowrap;${extra}`;
 
-  // ── 그룹 헤더 행 ──
-  const g1 = document.createElement('tr');
+  // ── 헤더 행 1: 대분류 ──
+  const r1 = document.createElement('tr');
+  const addTh1 = (text, rs, cs, extra='') => {
+    const th = document.createElement('th');
+    th.textContent = text;
+    if(rs>1) th.rowSpan = rs;
+    if(cs>1) th.colSpan = cs;
+    th.style.cssText = thB(extra);
+    r1.appendChild(th);
+    return th;
+  };
 
-  // 월 (rowspan=3)
-  const th월 = document.createElement('th');
-  th월.textContent='월'; th월.rowSpan=3;
-  th월.style.cssText=thBase+'width:46px;text-align:center;vertical-align:middle;'+BL;
-  g1.appendChild(th월);
-
-  // 구분 (rowspan=3)
-  const th구분 = document.createElement('th');
-  th구분.textContent='구분'; th구분.rowSpan=3;
-  th구분.style.cssText=thBase+'width:44px;vertical-align:middle;color:var(--color-text-tertiary);'+BL;
-  g1.appendChild(th구분);
-
-  // 그룹 헤더 (대행사, Meta, 나머지)
-  BROWS_GROUP_DEF.forEach((grp,gi)=>{
-    if(grp.key==='single'){
-      // 나머지 5개: rowspan=3 단일 헤더
-      grp.cols.forEach((col,ci)=>{
-        const th=document.createElement('th');
-        th.textContent=col.label; th.rowSpan=3;
-        th.style.cssText=thBase+'width:96px;vertical-align:middle;text-align:right;color:var(--color-text-secondary);'+(ci===0?BL:'');
-        g1.appendChild(th);
-      });
-    } else {
-      const th=document.createElement('th');
-      th.textContent=grp.label; th.colSpan=grp.cols.length;
-      th.style.cssText=thBase+'text-align:center;font-weight:700;color:'+grp.color+';border-bottom:0.5px solid var(--color-border-tertiary);'+(gi===0?BL:'');
-      g1.appendChild(th);
-    }
-  });
-
-  // 합계 (rowspan=3)
-  const th합 = document.createElement('th');
-  th합.textContent='합계'; th합.rowSpan=3;
-  th합.style.cssText=thBase+'width:100px;text-align:right;font-weight:700;vertical-align:middle;'+BL;
-  g1.appendChild(th합);
-
-  // 비고 (rowspan=3)
-  const th비 = document.createElement('th');
-  th비.textContent='비고'; th비.rowSpan=3;
-  th비.style.cssText=thBase+'min-width:150px;vertical-align:middle;color:var(--color-text-tertiary);'+BL;
-  g1.appendChild(th비);
-
-  thead.appendChild(g1);
-
-  // ── 중분류 헤더 행 (대행사/Meta) ──
-  const g2 = document.createElement('tr');
-  BROWS_GROUP_DEF.filter(g=>g.key!=='single').forEach((grp,gi)=>{
-    grp.cols.forEach((col,ci)=>{
-      const th=document.createElement('th');
-      th.textContent=col.label;
-      th.style.cssText=thBase+'width:96px;text-align:right;color:'+grp.color+';'+(gi===0&&ci===0?BL:'');
-      g2.appendChild(th);
-    });
-  });
-  thead.appendChild(g2);
-
-  // ── 계획/실적/달성률 서브헤더 행 ──
-  const g3 = document.createElement('tr');
-  const nonSingleCount = BROWS_GROUP_DEF.filter(g=>g.key!=='single').reduce((s,g)=>s+g.cols.length,0);
-  for(let ci=0;ci<nonSingleCount;ci++){
+  addTh1('월',    3, 1, 'width:46px;text-align:center;vertical-align:middle;'+BS);
+  addTh1('구분',  3, 1, 'width:40px;text-align:center;vertical-align:middle;color:var(--color-text-tertiary);'+BS);
+  addTh1('대행사',1, 2, 'text-align:center;color:#7c3aed;font-weight:700;border-bottom:0.5px solid var(--color-border-tertiary);'+BS);
+  addTh1('Meta',  1, 4, 'text-align:center;color:#185FA5;font-weight:700;border-bottom:0.5px solid var(--color-border-tertiary);'+BS);
+  // 나머지 5개 단일 컬럼 (rowspan=3)
+  [['CRM',3],['Earned Media',3],['Influencer',3],['Offline Store',3],['ETC',3]].forEach(([t,rs],i)=>{
     const th=document.createElement('th');
-    th.style.cssText=thBase+'text-align:right;font-size:9px;color:var(--color-text-tertiary);border-top:0.5px dashed var(--color-border-tertiary);'+(ci===0?BL:'');
-    th.innerHTML='계↑ 실↓';
-    g3.appendChild(th);
-  }
-  thead.appendChild(g3);
+    th.textContent=t; th.rowSpan=rs;
+    th.style.cssText=thB('width:88px;text-align:right;vertical-align:middle;color:var(--color-text-secondary);'+(i===0?BS:''));
+    r1.appendChild(th);
+  });
+  addTh1('합계',  3, 1, 'width:96px;text-align:right;font-weight:700;vertical-align:middle;'+BS);
+  addTh1('비고',  3, 1, 'min-width:130px;vertical-align:middle;color:var(--color-text-tertiary);'+BS);
+  thead.appendChild(r1);
+
+  // ── 헤더 행 2: 중분류 ──
+  const r2 = document.createElement('tr');
+  const SUB = [
+    {label:'셀럽',   color:'#7c3aed', bl:BS},
+    {label:'바이럴', color:'#7c3aed', bl:''},
+    {label:'자사몰', color:'#185FA5', bl:BS},
+    {label:'무신사', color:'#185FA5', bl:''},
+    {label:'29CM',   color:'#185FA5', bl:''},
+    {label:'글로벌', color:'#185FA5', bl:''},
+  ];
+  SUB.forEach(s=>{
+    const th=document.createElement('th');
+    th.textContent=s.label;
+    th.style.cssText=thB('width:88px;text-align:right;color:'+s.color+';'+s.bl);
+    r2.appendChild(th);
+  });
+  thead.appendChild(r2);
 }
+
 function iSel(opts,val,cb,withEmpty){
   let h='<select onchange="'+cb+'">';if(withEmpty)h+='<option value=""'+(val===''?' selected':'')+'>-</option>';
   opts.forEach(v=>{h+='<option'+(v===val?' selected':'')+'>'+v+'</option>';});return h+'</select>';
@@ -2212,89 +2189,79 @@ window.applyFeedbackFilter=function(){
 if(!window.budgetMemos)window.budgetMemos={};
 window.renderBudget=function(){
   if(!window.budgetsActual) window.budgetsActual=Array.from({length:12},()=>Array(BROWS.length).fill(0));
-  const GRP_STARTS=[0,2,6];
-  const BL='border-left:2px solid var(--color-border-secondary);';
-  const tdBase='padding:4px 7px;font-size:11px;text-align:right;white-space:nowrap;';
+  const tbody=document.getElementById('budget-body');
+  if(!tbody) return;
 
-  function fmtW(v){return v?'₩'+Math.round(v).toLocaleString('ko-KR'):'';}
-  function achColor(r){
-    if(!r||r===0)return 'var(--color-text-tertiary)';
-    if(r>=0.95)return '#2d8c5a';
-    if(r>=0.8)return '#d97706';
-    return '#c0392b';
-  }
-  function achBg(r){
-    if(!r||r===0)return 'transparent';
-    if(r>=0.95)return '#f0fdf4';
-    if(r>=0.8)return '#fffbeb';
-    return '#fef2f2';
-  }
+  // BROWS 순서: 대행사_셀럽(0), 대행사_바이럴(1), META_자사몰(2), META_무신사(3), META_29CM(4), META_글로벌(5), CRM(6), Earned_Media(7), Influencer(8), Offline_Store(9), ETC(10)
+  const GRP_BORDER_IDX = [0,2,6]; // 그룹 시작 인덱스 (왼쪽 굵은선)
+  const BS = 'border-left:2px solid var(--color-border-secondary);';
+  const tdN = 'padding:4px 6px;font-size:11px;text-align:right;white-space:nowrap;border-bottom:0.5px solid var(--color-border-tertiary);';
+  const tdL = 'padding:4px 6px;font-size:10px;white-space:nowrap;border-bottom:0.5px solid var(--color-border-tertiary);';
 
-  document.getElementById('budget-body').innerHTML=Array.from({length:12},(_,mi)=>{
-    const plan  = window.budgets[mi]       || Array(BROWS.length).fill(0);
-    const actual= window.budgetsActual[mi] || Array(BROWS.length).fill(0);
+  function fmtW(v){ return v?'₩'+Math.round(v).toLocaleString('ko-KR'):''; }
+  function achColor(r){ return !r?'var(--color-text-tertiary)':r>=0.95?'#2d8c5a':r>=0.8?'#d97706':'#c0392b'; }
+  function achBg(r){ return !r?'transparent':r>=0.95?'#f0fdf4':r>=0.8?'#fffbeb':'#fef2f2'; }
+
+  const inpS = 'text-align:right;width:100%;border:none;background:transparent;font-size:11px;color:inherit;font-family:inherit;outline:none;min-width:60px;';
+
+  tbody.innerHTML = Array.from({length:12},(_,mi)=>{
+    const plan   = (window.budgets[mi]       || []).concat(Array(BROWS.length).fill(0)).slice(0,BROWS.length);
+    const actual = (window.budgetsActual[mi] || []).concat(Array(BROWS.length).fill(0)).slice(0,BROWS.length);
     const planTot  = plan.reduce((s,v)=>s+(v||0),0);
     const actTot   = actual.reduce((s,v)=>s+(v||0),0);
     const achTot   = planTot>0?(actTot/planTot):0;
-    const memo = (window.budgetMemos||{})[mi]||'';
+    const memo     = (window.budgetMemos||{})[mi]||'';
 
-    // ── 월 레이블 (3행 rowspan) ──
-    const monthCell=`<td rowspan="3" style="font-weight:600;font-size:12px;color:var(--color-text-primary);border-right:${BL.split(':')[1].trim()};vertical-align:middle;text-align:center;padding:4px 8px;background:var(--color-background-secondary);">${mi+1}월</td>`;
+    // 월 셀 (rowspan=3)
+    const monthTd = `<td rowspan="3" style="font-weight:700;font-size:13px;text-align:center;vertical-align:middle;background:var(--color-background-secondary);${BS}padding:4px 6px;">${mi+1}월</td>`;
 
-    // ── 계획 행 ──
-    let planRow=`<tr style="border-bottom:none;">${monthCell}`;
-    planRow+=`<td style="${tdBase}font-size:10px;color:var(--color-text-tertiary);padding-right:6px;border-right:${BL.split(':')[1].trim()};">계획</td>`;
-    BROWS.forEach((r,ri)=>{
-      const bL=GRP_STARTS.includes(ri)?BL:'';
-      const val=plan[ri]||0;
-      const dispVal=fmtW(val);
-      planRow+=`<td style="${tdBase}${bL}">
-        <input type="text" value="${dispVal}" placeholder="₩0"
-          data-mi="${mi}" data-ri="${ri}" data-type="plan"
-          style="text-align:right;width:100%;border:none;background:transparent;font-size:11px;color:var(--color-text-primary);font-family:inherit;"
-          onfocus="budgetFocusNew(this)" onblur="budgetBlurNew(this)">
-      </td>`;
-    });
-    planRow+=`<td style="${tdBase}${BL}font-weight:600;">${fmtW(planTot)||'₩0'}</td>`;
-    planRow+=`<td rowspan="3" style="padding:4px 8px;vertical-align:middle;cursor:pointer;min-width:140px;" ondblclick="budgetMemoOpen(${mi},this)">
-      <div id="bmemo-${mi}" style="font-size:11px;color:${memo?'var(--color-text-primary)':'var(--color-text-tertiary)'};">
-        ${memo||(mi===0?'더블클릭 → 비고 입력':'')}</div>
-    </td>`;
-    planRow+=`</tr>`;
+    // 비고 셀 (rowspan=3)
+    const memoShort = memo ? (memo.length>18?memo.slice(0,18)+'…':memo) : '<span style="color:var(--color-text-tertiary);font-size:10px;">더블클릭</span>';
+    const memoTd = `<td rowspan="3" style="vertical-align:middle;cursor:pointer;padding:4px 8px;${BS}" ondblclick="budgetMemoOpen(${mi},this)">
+      <div id="bmemo-${mi}" style="font-size:11px;">${memoShort}</div></td>`;
 
-    // ── 실적 행 ──
-    let actRow=`<tr style="border-bottom:none;">`;
-    actRow+=`<td style="font-size:10px;color:#185FA5;padding:3px 6px;border-right:${BL.split(':')[1].trim()};">실적</td>`;
-    BROWS.forEach((r,ri)=>{
-      const bL=GRP_STARTS.includes(ri)?BL:'';
-      const val=actual[ri]||0;
-      const dispVal=fmtW(val);
-      actRow+=`<td style="${tdBase}${bL}color:#185FA5;">
-        <input type="text" value="${dispVal}" placeholder="₩0"
-          data-mi="${mi}" data-ri="${ri}" data-type="actual"
-          style="text-align:right;width:100%;border:none;background:transparent;font-size:11px;color:#185FA5;font-family:inherit;"
-          onfocus="budgetFocusNew(this)" onblur="budgetBlurNew(this)">
-      </td>`;
-    });
-    actRow+=`<td style="${tdBase}${BL}font-weight:600;color:#185FA5;">${fmtW(actTot)||'₩0'}</td>`;
-    actRow+=`</tr>`;
+    // 계획 행
+    let cells_plan = BROWS.map((r,ri)=>{
+      const bl = GRP_BORDER_IDX.includes(ri)?BS:'';
+      const val = plan[ri]||0;
+      return `<td style="${tdN}${bl}"><input type="text" value="${fmtW(val)}" placeholder="" data-mi="${mi}" data-ri="${ri}" data-type="plan" style="${inpS}" onfocus="budgetFocusNew(this)" onblur="budgetBlurNew(this)"></td>`;
+    }).join('');
+    const planRow = `<tr>
+      ${monthTd}
+      <td style="${tdL}color:var(--color-text-tertiary);${BS}">계획</td>
+      ${cells_plan}
+      <td style="${tdN}font-weight:700;${BS}">${fmtW(planTot)||'₩0'}</td>
+      ${memoTd}
+    </tr>`;
 
-    // ── 달성률 행 ──
-    let achRow=`<tr style="border-bottom:1.5px solid var(--color-border-secondary);">`;
-    achRow+=`<td style="font-size:10px;color:var(--color-text-tertiary);padding:3px 6px;border-right:${BL.split(':')[1].trim()};">달성률</td>`;
-    BROWS.forEach((r,ri)=>{
-      const bL=GRP_STARTS.includes(ri)?BL:'';
+    // 실적 행
+    let cells_act = BROWS.map((r,ri)=>{
+      const bl = GRP_BORDER_IDX.includes(ri)?BS:'';
+      const val = actual[ri]||0;
+      return `<td style="${tdN}${bl}color:#185FA5;"><input type="text" value="${fmtW(val)}" placeholder="" data-mi="${mi}" data-ri="${ri}" data-type="actual" style="${inpS}color:#185FA5;" onfocus="budgetFocusNew(this)" onblur="budgetBlurNew(this)"></td>`;
+    }).join('');
+    const actRow = `<tr>
+      <td style="${tdL}color:#185FA5;${BS}">실적</td>
+      ${cells_act}
+      <td style="${tdN}font-weight:700;color:#185FA5;${BS}">${fmtW(actTot)||'₩0'}</td>
+    </tr>`;
+
+    // 달성률 행
+    let cells_ach = BROWS.map((r,ri)=>{
+      const bl = GRP_BORDER_IDX.includes(ri)?BS:'';
       const p=plan[ri]||0, a=actual[ri]||0;
       const ratio=p>0?(a/p):0;
       const pct=p>0?(ratio*100).toFixed(1)+'%':'-';
-      const bg=achBg(ratio), fc=achColor(ratio);
-      achRow+=`<td style="${tdBase}${bL}background:${bg};color:${fc};font-weight:500;">${pct}</td>`;
-    });
-    const achTotPct=planTot>0?(achTot*100).toFixed(1)+'%':'-';
-    achRow+=`<td style="${tdBase}${BL}font-weight:700;background:${achBg(achTot)};color:${achColor(achTot)};">${achTotPct}</td>`;
-    achRow+=`</tr>`;
+      return `<td style="${tdN}${bl}font-weight:500;background:${achBg(ratio)};color:${achColor(ratio)};">${pct}</td>`;
+    }).join('');
+    const achTotPct = planTot>0?(achTot*100).toFixed(1)+'%':'-';
+    const achRow = `<tr style="border-bottom:2px solid var(--color-border-secondary);">
+      <td style="${tdL}color:var(--color-text-tertiary);${BS}">달성률</td>
+      ${cells_ach}
+      <td style="${tdN}font-weight:700;background:${achBg(achTot)};color:${achColor(achTot)};${BS}">${achTotPct}</td>
+    </tr>`;
 
-    return planRow+actRow+achRow;
+    return planRow + actRow + achRow;
   }).join('');
 };
 
@@ -2313,7 +2280,7 @@ window.renderProducts=function(){
       <td style="${tdS}">${iSel(PLTS,p.platform,'window.products['+i+'].platform=this.value;fbSaveProducts();window.renderProducts();')}</td>
       <td style="${tdS}"><input type="text" value="${p.uid||''}" style="${inpS}" onchange="window.products[${i}].uid=this.value;fbSaveProducts();"></td>
       <td style="${tdS}"><input type="text" value="${p.code||''}" style="${inpS}" onchange="window.products[${i}].code=this.value;autoFill(${i},this.value);fbSaveProducts();"></td>
-      <td style="${tdS}"><input type="text" value="${p.name||''}" style="${inpS}font-weight:500;" onchange="window.products[${i}].name=this.value;fbSaveProducts();"></td>
+      <td style="${tdS};max-width:160px;"><input type="text" value="${p.name||''}" style="${inpS}font-weight:500;max-width:150px;" onchange="window.products[${i}].name=this.value;fbSaveProducts();"></td>
       <td style="${tdS}">
         <input type="text" value="${tagVal}" style="${inpS}color:var(--color-text-secondary);"
           placeholder="태그1, 태그2..."
@@ -5113,70 +5080,103 @@ function celebBuildTable(){
     return true;
   });
 
-  // 전역 상수
-  const CH_OPTS=['Instagram','Youtube','Tiktok','X','Media','Offline'];
-  const CH_COLOR={Instagram:{bg:'#fce7f3',color:'#9d174d'},Youtube:{bg:'#fee2e2',color:'#991b1b'},
-    Tiktok:{bg:'#f3f4f6',color:'#111827'},X:{bg:'#dbeafe',color:'#1e40af'},
-    Media:{bg:'#ede9fe',color:'#5b21b6'},Offline:{bg:'#d1fae5',color:'#065f46'}};
-  const EXP_OPTS=['광고','협찬','오가닉','기타'];
-  const EXP_COLOR={광고:{bg:'#dbeafe',color:'#1e40af'},협찬:{bg:'#d1fae5',color:'#065f46'},
-    오가닉:{bg:'#fef3c7',color:'#92400e'},기타:{bg:'#f3f4f6',color:'#6b7280'}};
-  const CONT_OPTS=['피드','스토리','릴스','쇼츠','브랜디드','PPL','직접 기입'];
+  // ── 상수 ──
+  const CH_OPTS  = ['Instagram','Youtube','Tiktok','X','Media','Offline'];
+  const EXP_OPTS = ['광고','협찬','오가닉','기타'];
+  const CONT_OPTS= ['피드','스토리','릴스','브랜디드','PPL','직접 입력'];
+
+  const CH_COLOR = {
+    Instagram:{bg:'#fce7f3',color:'#9d174d'},
+    Youtube:  {bg:'#fee2e2',color:'#991b1b'},
+    Tiktok:   {bg:'#f3f4f6',color:'#111827'},
+    X:        {bg:'#dbeafe',color:'#1e40af'},
+    Media:    {bg:'#ede9fe',color:'#5b21b6'},
+    Offline:  {bg:'#d1fae5',color:'#065f46'},
+  };
+  const EXP_COLOR= {
+    광고:{bg:'#dbeafe',color:'#1e40af'},
+    협찬:{bg:'#d1fae5',color:'#065f46'},
+    오가닉:{bg:'#fef3c7',color:'#92400e'},
+    기타:{bg:'#f3f4f6',color:'#6b7280'},
+  };
 
   function fmtFollower(v){
     const n=parseInt(String(v).replace(/[^0-9]/g,''));
     if(isNaN(n)||n===0)return v||'-';
-    if(n>=1000000)return (n/1000000).toFixed(1).replace('.0','')+'M';
-    if(n>=1000)return (n/1000).toFixed(1).replace('.0','')+'K';
+    if(n>=1000000)return(n/1000000).toFixed(1).replace('.0','')+'M';
+    if(n>=1000)return(n/1000).toFixed(1).replace('.0','')+'K';
     return String(n);
   }
 
   const tdS='padding:5px 7px;border-bottom:0.5px solid var(--color-border-tertiary);font-size:11px;vertical-align:middle;';
 
+  // 병합 계산 함수 (날짜+셀럽+상품 동일 시)
+  function getMergeCount(ri, keys){
+    let cnt=1;
+    for(let k=ri+1;k<data.length;k++){
+      if(keys.every(key=>data[k][key]===data[ri][key]))cnt++;
+      else break;
+    }
+    return cnt;
+  }
+  function isMergedRow(ri, keys){
+    if(ri===0)return false;
+    return keys.every(key=>data[ri-1][key]===data[ri][key]);
+  }
+
   tbody.innerHTML=data.map((r,ri)=>{
-    // 날짜+이름 병합
-    const prevR=ri>0?data[ri-1]:null;
-    const isMerged=prevR&&prevR.date===r.date&&prevR.name===r.name;
-    let sameCount=1;
-    for(let k=ri+1;k<data.length;k++){if(data[k].date===r.date&&data[k].name===r.name)sameCount++;else break;}
+    // 노출일+셀럽+상품 기준 병합
+    const MERGE_KEYS=['date','name','product'];
+    const merged = isMergedRow(ri, MERGE_KEYS);
+    const mergeCount = merged ? 0 : getMergeCount(ri, MERGE_KEYS);
 
-    const dateTd=isMerged?'':`<td style="${tdS};font-weight:500;" rowspan="${sameCount}" ondblclick="celebEdit(this,${ri},'date','date')">${r.date||'-'}</td>`;
-    const nameTd=isMerged?'':`<td style="${tdS};font-weight:600;" rowspan="${sameCount}" ondblclick="celebEdit(this,${ri},'name')">${r.name||'-'}</td>`;
+    // 병합 대상 셀 (노출일, 셀럽, 상품)
+    const dateTd = merged ? '' :
+      `<td style="${tdS}font-weight:500;" rowspan="${mergeCount}" ondblclick="celebEdit(this,${ri},'date','date')">${r.date||'-'}</td>`;
+    const nameTd = merged ? '' :
+      `<td style="${tdS}font-weight:600;" rowspan="${mergeCount}" ondblclick="celebEdit(this,${ri},'name')">${r.name||'-'}</td>`;
+    const productTd = merged ? '' :
+      `<td style="${tdS}" rowspan="${mergeCount}" ondblclick="celebEdit(this,${ri},'product')">${r.product||'-'}</td>`;
+    const colorTd = merged ? '' :
+      `<td style="${tdS}" rowspan="${mergeCount}" ondblclick="celebEdit(this,${ri},'color')">${r.color||'-'}</td>`;
 
-    // 채널 뱃지
-    const chc=CH_COLOR[r.ch]||{bg:'#f3f4f6',color:'#6b7280'};
-    const chBadge=`<span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:500;cursor:pointer;background:${chc.bg};color:${chc.color};">${r.ch||'선택'}</span>`;
+    // 구분 (더블클릭 직접 편집)
+    const divisionTd = `<td style="${tdS}" ondblclick="celebEdit(this,${ri},'division')">${r.division||'-'}</td>`;
 
-    // 노출 유형 뱃지
+    // 노출 유형 뱃지 (더블클릭 → 드롭다운)
     const expc=EXP_COLOR[r.exposureType]||{bg:'transparent',color:'var(--color-text-tertiary)'};
     const expBadge=`<span style="padding:2px 8px;border-radius:12px;font-size:10px;cursor:pointer;background:${expc.bg};color:${expc.color};">${r.exposureType||'-'}</span>`;
 
-    // 콘텐츠 유형
-    const contBadge=`<span style="font-size:11px;cursor:pointer;">${r.contentType||'-'}</span>`;
-
-    // 비용 회계
+    // 비용
     const costFmt=r.cost?'₩'+Number(String(r.cost).replace(/[^0-9]/g,'')).toLocaleString('ko-KR'):'-';
 
-    // 팔로워 K/M
-    const followerFmt=fmtFollower(r.followers);
+    // 채널 뱃지 (더블클릭 → 드롭다운)
+    const chc=CH_COLOR[r.ch]||{bg:'#f3f4f6',color:'#6b7280'};
+    const chBadge=`<span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:500;cursor:pointer;background:${chc.bg};color:${chc.color};">${r.ch||'선택'}</span>`;
+
+    // 콘텐츠 유형 뱃지 (더블클릭 → 드롭다운)
+    const contBadge=`<span style="font-size:11px;cursor:pointer;padding:2px 4px;border-radius:4px;background:var(--color-background-secondary);">${r.contentType||'-'}</span>`;
 
     return `<tr style="border-bottom:0.5px solid var(--color-border-tertiary);">
-      ${dateTd}${nameTd}
-      <td style="${tdS}" ondblclick="celebDropdown(this,${ri},'ch',CH_OPTS,CH_COLOR)">${chBadge}</td>
-      <td style="${tdS};text-align:right;" ondblclick="celebEdit(this,${ri},'followers')">${followerFmt}</td>
+      ${dateTd}
+      ${divisionTd}
+      ${nameTd}
       <td style="${tdS}" ondblclick="celebDropdown(this,${ri},'exposureType',EXP_OPTS,EXP_COLOR)">${expBadge}</td>
-      <td style="${tdS}" ondblclick="celebDropdown(this,${ri},'contentType',CONT_OPTS,{})">${contBadge}</td>
-      <td style="${tdS};text-align:right;font-family:monospace;" ondblclick="celebEdit(this,${ri},'cost')">${costFmt}</td>
-      <td style="${tdS}">${r.link?`<a href="${r.link}" target="_blank" style="color:#185FA5;font-size:10px;">링크↗</a>`:'-'}</td>
-      <td style="${tdS};text-align:right;" ondblclick="celebEdit(this,${ri},'views')">${r.views||'-'}</td>
-      <td style="${tdS};text-align:right;" ondblclick="celebEdit(this,${ri},'likes')">${r.likes||'-'}</td>
-      <td style="${tdS};text-align:right;" ondblclick="celebEdit(this,${ri},'comments')">${r.comments||'-'}</td>
-      <td style="${tdS}" ondblclick="celebEdit(this,${ri},'product')">${r.product||'-'}</td>
-      <td style="${tdS}" ondblclick="celebEdit(this,${ri},'color')">${r.color||'-'}</td>
+      <td style="${tdS}text-align:right;font-family:monospace;" ondblclick="celebEdit(this,${ri},'cost')">${costFmt}</td>
+      <td style="${tdS}" ondblclick="celebDropdown(this,${ri},'ch',CH_OPTS,CH_COLOR)">${chBadge}</td>
+      <td style="${tdS}text-align:right;" ondblclick="celebEdit(this,${ri},'followers')">${fmtFollower(r.followers)}</td>
+      <td style="${tdS}" ondblclick="celebDropdown(this,${ri},'contentType',CONT_OPTS,{},'celeb')">${contBadge}</td>
+      <td style="${tdS}">${r.link?`<a href="${r.link}" target="_blank" style="color:#185FA5;font-size:10px;">링크↗</a>`:
+        `<span style="font-size:10px;color:var(--color-text-tertiary);cursor:pointer;" ondblclick="celebEdit(this.closest('td'),${ri},'link')">+링크</span>`}</td>
+      <td style="${tdS}text-align:right;" ondblclick="celebEdit(this,${ri},'views')">${r.views||'-'}</td>
+      <td style="${tdS}text-align:right;" ondblclick="celebEdit(this,${ri},'likes')">${r.likes||'-'}</td>
+      <td style="${tdS}text-align:right;" ondblclick="celebEdit(this,${ri},'comments')">${r.comments||'-'}</td>
+      ${productTd}
+      ${colorTd}
       <td style="${tdS}" ondblclick="celebEdit(this,${ri},'note')">${r.note||'-'}</td>
       <td style="${tdS}"><button onclick="celebDel(${ri})" style="font-size:10px;padding:2px 7px;border-radius:4px;border:0.5px solid #fca5a5;background:transparent;cursor:pointer;color:#c0392b;">삭제</button></td>
     </tr>`;
-  }).join('')||`<tr><td colspan="14" style="text-align:center;padding:20px;color:var(--color-text-tertiary);">데이터가 없어요. + 추가 버튼으로 셀럽 노출 건을 등록해주세요.</td></tr>`;
+  }).join('')||`<tr><td colspan="16" style="text-align:center;padding:20px;color:var(--color-text-tertiary);">데이터가 없어요. + 추가 버튼으로 셀럽 노출 건을 등록해주세요.</td></tr>`;
 }
 
 function celebAddRow(){
