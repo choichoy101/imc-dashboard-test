@@ -249,7 +249,7 @@ select,input[type=text],input[type=number],input[type=date]{font-size:12px;paddi
 /* 테이블 셀 안의 select/input은 내용 길이에 맞게 자동 조절 */
 td select{width:auto;max-width:100%;min-width:0;}
 td input[type=text],td input[type=number],td input[type=date]{width:100%;min-width:40px;}
-.tbl-wrap{overflow-x:auto;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);}
+.tbl-wrap{overflow-x:auto;padding-bottom:4px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);}
 table{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:auto;}
 th{background:var(--color-background-secondary);color:var(--color-text-secondary);font-weight:500;padding:7px 8px;text-align:left;border-bottom:0.5px solid var(--color-border-tertiary);white-space:nowrap;}
 td{padding:5px 8px;border-bottom:0.5px solid var(--color-border-tertiary);border-right:0.5px solid var(--color-border-tertiary);vertical-align:middle;}
@@ -414,8 +414,8 @@ tr:hover td{background:var(--color-background-secondary);}
 /* ── Seeding 플로우 ── */
 .seed-flow-step{display:flex;flex-direction:column;align-items:center;gap:4px;}
 .seed-flow-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
-.seed-flow-dot.done{background:#185FA5;color:#fff;}
-.seed-flow-dot.current{background:var(--color-text-primary);color:var(--color-background-primary);}
+.seed-flow-dot.done{background:var(--color-background-secondary);color:var(--color-text-tertiary);border:0.5px solid var(--color-border-secondary);}
+.seed-flow-dot.current{background:var(--color-text-primary);color:var(--color-background-primary);box-shadow:0 0 0 3px rgba(0,0,0,.12);}
 .seed-flow-dot.pending{background:var(--color-background-secondary);color:var(--color-text-tertiary);border:0.5px solid var(--color-border-secondary);}
 .seed-flow-label{font-size:9px;color:var(--color-text-tertiary);}
 .seed-flow-arrow{color:var(--color-text-tertiary);font-size:14px;margin-bottom:14px;}
@@ -524,12 +524,12 @@ td.dc-td{padding:0!important;vertical-align:middle;}
 .tbl-wrap table tbody tr td .dc-cell::after{content:'';position:absolute;right:3px;top:50%;transform:translateY(-50%);width:0;height:0;opacity:0;transition:opacity .15s;}
 .tbl-wrap table tbody tr:hover td .dc-cell{background:rgba(24,95,165,0.04);}
 
-.col-sticky{position:sticky;background:var(--color-background-secondary)!important;z-index:2;border-right:0.5px solid var(--color-border-secondary);}
+.col-sticky{position:sticky;background:var(--color-background-primary)!important;z-index:3;border-right:0.5px solid var(--color-border-secondary);box-shadow:2px 0 4px rgba(0,0,0,.06);}
 .col-sticky-last{position:sticky;background:var(--color-background-secondary)!important;z-index:2;border-right:2px solid var(--color-border-primary)!important;}
 .col-sticky-td{position:sticky;background:var(--color-background-primary);z-index:1;}
 .col-sticky-td-last{position:sticky;background:var(--color-background-primary);z-index:1;border-right:2px solid var(--color-border-primary)!important;}
-.fb-sticky{position:sticky;background:var(--color-background-secondary)!important;z-index:4;border-right:0.5px solid var(--color-border-tertiary);white-space:nowrap;}
-.fb-sticky-td{position:sticky;background:var(--color-background-primary)!important;z-index:3;border-right:0.5px solid var(--color-border-tertiary);}
+.fb-sticky{position:sticky;background:var(--color-background-primary)!important;z-index:5;border-right:0.5px solid var(--color-border-tertiary);white-space:nowrap;box-shadow:2px 0 4px rgba(0,0,0,.06);}
+.fb-sticky-td{position:sticky;background:var(--color-background-primary)!important;z-index:4;border-right:0.5px solid var(--color-border-tertiary);}
 .fb-sticky-td{position:sticky;background:var(--color-background-primary)!important;z-index:1;}
 .budget-memo-wrap{position:relative;display:inline-block;width:100%;}
 .budget-memo-icon{position:absolute;top:50%;right:3px;transform:translateY(-50%);font-size:10px;color:#185FA5;cursor:pointer;opacity:0;transition:opacity .2s;line-height:1;}
@@ -1126,6 +1126,7 @@ td.dc-td{padding:0!important;vertical-align:middle;}
       <div style="display:flex;flex-wrap:wrap;gap:4px;" id="celeb-month-btns">
         <div class="chip active" onclick="celebSetMonth('all',this)">전체</div>
       </div>
+    
     </div>
     <div style="width:0.5px;background:var(--color-border-tertiary);align-self:stretch;margin:0 10px;"></div>
     <div class="slicer-group">
@@ -1143,7 +1144,10 @@ td.dc-td{padding:0!important;vertical-align:middle;}
   </div>
   <!-- 테이블 -->
   <div style="background:var(--color-background-primary);border-radius:12px;border:0.5px solid var(--color-border-tertiary);padding:16px;">
-
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div style="font-size:12px;font-weight:600;color:var(--color-text-primary);">셀럽 노출 목록</div>
+      <button class="add-btn" onclick="celebAddRow()">+ 추가</button>
+    </div>
     <div style="overflow-x:auto;">
       <table style="width:100%;border-collapse:collapse;font-size:11px;white-space:nowrap;">
         <thead><tr style="background:var(--color-background-secondary);">
@@ -1551,13 +1555,13 @@ const CHS=['Instagram','Youtube','Tiktok','X'];
 const STATUS_OPTS = ['리스트업','컨택','회신','거절','취합','발송','업로드','스냅'];
 const STATUS_COLOR_MAP = {
   '리스트업': {bg:'#F3F4F6',color:'#6B7280',border:'#D1D5DB'},
-  '컨택':    {bg:'#DCFCE7',color:'#166534',border:'#86EFAC'},
-  '회신':    {bg:'#DBEAFE',color:'#1E40AF',border:'#93C5FD'},
-  '거절':    {bg:'#FEE2E2',color:'#991B1B',border:'#FCA5A5'},
-  '취합':    {bg:'#FEF3C7',color:'#92400E',border:'#FCD34D'},
-  '발송':    {bg:'#EDE9FE',color:'#5B21B6',border:'#C4B5FD'},
-  '업로드':  {bg:'#D1FAE5',color:'#065F46',border:'#6EE7B7'},
-  '스냅':    {bg:'#FFF7ED',color:'#9A3412',border:'#FDBA74'},
+  '컨택':    {bg:'#DCFCE7',color:'#166534',border:'#86EFAC'},   // 연초록
+  '회신':    {bg:'#DBEAFE',color:'#1E40AF',border:'#93C5FD'},   // 파랑
+  '거절':    {bg:'#FEE2E2',color:'#991B1B',border:'#FCA5A5'},   // 빨강
+  '취합':    {bg:'#FEF3C7',color:'#92400E',border:'#FCD34D'},   // 주황
+  '발송':    {bg:'#EDE9FE',color:'#5B21B6',border:'#C4B5FD'},   // 보라
+  '업로드':  {bg:'#185FA5',color:'#FFFFFF',border:'#185FA5'},   // 진파랑 (컨택과 구분)
+  '스냅':    {bg:'#FFF7ED',color:'#9A3412',border:'#FDBA74'},   // 주황갈색
 };
 const USE2_OPTS = ['진행','미진행'];
 const USE2_COLOR = {
@@ -1850,7 +1854,8 @@ window.buildCal=function(){
       evHtml+=(window.celebData||[]).filter(r=>r.date===ds).map(r=>{
         const abr=CH_ABR[r.ch]||r.ch||'';
         const label=(r.name||'')+(abr?'-'+abr:'')+(r.contentType?' '+r.contentType:'');
-        return '<div class="ev ev-celeb" title="셀럽: '+r.name+'">⭐ '+label+'</div>';
+        const celebIdx=(window.celebData||[]).indexOf(r);
+        return '<div class="ev ev-celeb" title="'+r.name+' 클릭하면 팝업" onclick="openCelebPopup('+celebIdx+')">⭐ '+label+'</div>';
       }).join('');
       return '<div class="cal-cell"><div class="'+nc+'">'+d+'</div>'+evHtml+'</div>';
     });
@@ -1919,8 +1924,8 @@ function renderCreatorRows(list){
       +'<td class="col-sticky-td dc-td" style="left:110px;min-width:110px;">'+dcCell(r.id,'window.creators['+ri+'].id=__VAL__;fbSaveCreators();',{placeholder:'ID',minW:'100px'})+'</td>'
       +'<td class="col-sticky-td-last dc-td" style="left:220px;min-width:90px;">'+dcSel(['리스트업','컨택 완료','진행가능','DROP'],r.contact,'window.creators['+ri+'].contact=__VAL__;fbSaveCreators();')+'</td>'
       +'<td class="dc-td">'+dcSel(['유가','무가','선물'],r.collab,'window.creators['+ri+'].collab=__VAL__;fbSaveCreators();')+'</td>'
-      +'<td class="dc-td">'+dcSel(CHS,r.ch,'window.creators['+ri+'].ch=__VAL__;fbSaveCreators();window.buildCal();')+'</td>'
-      +'<td class="dc-td">'+dcCell(r.followers,'window.creators['+ri+'].followers=__VAL__;fbSaveCreators();',{placeholder:'팔로워'})+'</td>'
+      +'<td class="dc-td" ondblclick="listChDrop(this,'+ri+')">'+listChBadge(r.ch)+'</td>'
+      +'<td class="dc-td">'+dcCell(fmtFollowers(r.followers),'window.creators['+ri+'].followers=__VAL__;fbSaveCreators();',{placeholder:'팔로워'})+'</td>'
       +'<td class="dc-td">'+dcCell(r.contactPoint||'','window.creators['+ri+'].contactPoint=__VAL__;fbSaveCreators();',{placeholder:'컨택 포인트',minW:'110px'})+'</td>'
       +'<td class="single-check"><input type="checkbox"'+(r.checked?' checked':'')+' onchange="window.creators['+ri+'].checked=this.checked;fbSaveCreators();window.buildCal();window.updateSummary();"></td>'
       +'<td class="dc-td">'+dcCell(r.uploadDate,'window.creators['+ri+'].uploadDate=__VAL__;fbSaveCreators();window.buildCal();window.updateSummary();',{type:'date',minW:'110px'})+'</td>'
@@ -1956,8 +1961,28 @@ window.applyListFilter=function(){
   }));
 };
 function addCreator(){
-  window.creators.push({_id:genId(),name:'',id:'',collab:'유가',ch:'Instagram',followers:'',contact:'리스트업',checked:false,uploadDate:'',platform:'무신사',campaign:'',contentType:'IG 릴스 브랜디드',cost1:0,sec:'-',cost2:0,progress:'',linkType:'취합',payType:'개인',settle:'',note:'',items:[],_order:window.creators.length});
-  fbSaveCreators();applyListFilter();
+  window.creators = window.creators || [];
+  window.creators.push({
+    _id:genId(), name:'', id:'', collab:'유가', ch:'Instagram', followers:'',
+    contact:'리스트업', checked:false, uploadDate:'', platform:'무신사',
+    campaign:'', contentType:'IG 릴스 브랜디드', cost1:0, sec:'-', cost2:0,
+    progress:'', linkType:'취합', payType:'개인', settle:'', note:'',
+    items:[], _order:window.creators.length
+  });
+  if(window.fbSaveCreators) window.fbSaveCreators();
+  // 필터 초기화 후 렌더
+  const monthSel = document.getElementById('lf-month');
+  const chSel    = document.getElementById('lf-ch');
+  if(monthSel) monthSel.value = '0';
+  if(chSel)    chSel.value    = '0';
+  if(window.applyListFilter) window.applyListFilter();
+  // 마지막 행 스크롤
+  setTimeout(()=>{
+    const body = document.getElementById('creator-body');
+    if(body && body.lastElementChild) {
+      body.lastElementChild.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }
+  }, 100);
 }
 
 /* ══ FEEDBACK ══ */
@@ -3179,8 +3204,7 @@ function openCreatorPopup(creatorName) {
     const isPrevDay = (di===0); // D-1: 업로드 전일
     const isUploadDay = (di===1); // 업로드 당일
     // 날짜 레이블: M/D 형식
-    const dateLabel = d ? (d.getMonth()+1)+'/'+(d.getDate()) : '-';
-    days.push({di, offset, ds, data, isPrevDay, isUploadDay, dateLabel});
+    const dateLabel = d ? (d.getMonth()+1)+'월 '+d.getDate()+'일' : '-';({di, offset, ds, data, isPrevDay, isUploadDay, dateLabel});
   }
 
   // 집계
@@ -3333,6 +3357,76 @@ function openCreatorPopup(creatorName) {
   document.getElementById('creator-popup').classList.add('open');
   document.body.style.overflow='hidden';
 }
+
+/* ── Celeb 팝업 ── */
+function openCelebPopup(celebIdx) {
+  const r = (window.celebData||[])[celebIdx];
+  if(!r) return;
+
+  const CH_COLOR={Instagram:'#9d174d',Youtube:'#991b1b',Tiktok:'#111827',X:'#1e40af',Media:'#5b21b6',Offline:'#065f46'};
+  const chColor = CH_COLOR[r.ch]||'var(--color-text-primary)';
+
+  // 팝업 없으면 생성
+  let popup = document.getElementById('celeb-popup');
+  if(!popup){
+    popup = document.createElement('div');
+    popup.id = 'celeb-popup';
+    popup.style.cssText = 'position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.45);';
+    popup.innerHTML = `
+      <div style="background:var(--color-background-primary);border-radius:16px;width:440px;max-width:95vw;padding:24px;box-shadow:0 8px 40px rgba(0,0,0,.25);position:relative;">
+        <button onclick="closeCelebPopup()" style="position:absolute;top:14px;right:16px;font-size:18px;border:none;background:transparent;cursor:pointer;color:var(--color-text-tertiary);">✕</button>
+        <div id="cp2-title" style="font-size:16px;font-weight:700;margin-bottom:4px;"></div>
+        <div id="cp2-sub" style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:16px;"></div>
+        <div id="cp2-cards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;"></div>
+        <div id="cp2-note" style="font-size:11px;color:var(--color-text-secondary);padding:8px 10px;background:var(--color-background-secondary);border-radius:8px;"></div>
+      </div>`;
+    document.body.appendChild(popup);
+    popup.addEventListener('click', e=>{ if(e.target===popup) closeCelebPopup(); });
+  }
+
+  function fmtN(v){const n=parseInt(String(v||'').replace(/[^0-9]/g,''));return isNaN(n)||!n?'-':n.toLocaleString('ko-KR');}
+  function fmtF(v){const n=parseInt(String(v||'').replace(/[^0-9]/g,''));if(isNaN(n)||!n)return v||'-';return n>=1e6?(n/1e6).toFixed(1).replace('.0','')+'M':n>=1e3?(n/1e3).toFixed(1).replace('.0','')+'K':String(n);}
+
+  document.getElementById('cp2-title').textContent = '⭐ '+(r.name||'-')+' · '+(r.contentType||'');
+  document.getElementById('cp2-sub').innerHTML =
+    '📅 '+(r.date||'-')
+    +' &nbsp;|&nbsp; <span style="color:'+chColor+';font-weight:500;">'+(r.ch||'-')+'</span>'
+    +' &nbsp;|&nbsp; 🧑‍🤝‍🧑 '+fmtF(r.followers)
+    +(r.exposureType?' &nbsp;|&nbsp; '+r.exposureType:'');
+
+  const cards = [
+    {label:'조회수', val:fmtN(r.views),    sub:'노출 건'},
+    {label:'좋아요', val:fmtN(r.likes),    sub:'좋아요 수'},
+    {label:'댓글',   val:fmtN(r.comments), sub:'댓글 수'},
+  ];
+  document.getElementById('cp2-cards').innerHTML = cards.map(c=>
+    '<div style="background:var(--color-background-secondary);border-radius:10px;padding:12px;text-align:center;">'
+    +'<div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:4px;">'+c.label+'</div>'
+    +'<div style="font-size:18px;font-weight:700;color:var(--color-text-primary);">'+c.val+'</div>'
+    +'<div style="font-size:9px;color:var(--color-text-tertiary);margin-top:2px;">'+c.sub+'</div>'
+    +'</div>'
+  ).join('');
+
+  const noteItems = [
+    r.product ? '🛍 '+r.product+(r.color?' ('+r.color+')':'') : '',
+    r.cost ? '💰 비용: ₩'+Number(String(r.cost).replace(/[^0-9]/g,'')).toLocaleString('ko-KR') : '',
+    r.link ? '<a href="'+r.link+'" target="_blank" style="color:#185FA5;">🔗 링크 보기</a>' : '',
+    r.note ? '📝 '+r.note : '',
+  ].filter(Boolean).join(' &nbsp;|&nbsp; ');
+  document.getElementById('cp2-note').innerHTML = noteItems || '추가 정보 없음';
+
+  popup.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+window.openCelebPopup = openCelebPopup;
+
+function closeCelebPopup(){
+  const p = document.getElementById('celeb-popup');
+  if(p) p.style.display='none';
+  document.body.style.overflow='';
+}
+window.closeCelebPopup = closeCelebPopup;
+
 
 function closeCreatorPopup(){
   document.getElementById('creator-popup').classList.remove('open');
@@ -4775,13 +4869,31 @@ function seedUpdateFlow(){
   data.forEach(r=>{if(r.status&&counts[r.status]!==undefined)counts[r.status]++;});
   const maxStatus=data.reduce((m,r)=>{if(r.status&&SEED_STATUS_ORDER[r.status]>SEED_STATUS_ORDER[m||'컨택'])return r.status;return m||'컨택';},'컨택');
   wrap.innerHTML='';
-  ['컨택','회신','취합','발송','업로드','스냅'].forEach((s,i)=>{
+  ['리스트업','컨택','회신','취합','발송','업로드','스냅'].forEach((s,i,arr_)=>{
     const step=document.createElement('div'); step.className='seed-flow-step';
     const currentIdx=SEED_STATUS_ORDER[maxStatus]||0;
-    const cls=SEED_STATUS_ORDER[s]<currentIdx?'done':SEED_STATUS_ORDER[s]===currentIdx?'current':'pending';
-    step.innerHTML=`<div class="seed-flow-dot ${cls}">${counts[s]||0}</div><div class="seed-flow-label">${s}</div>`;
+    const sIdx = SEED_STATUS_ORDER[s]!==undefined ? SEED_STATUS_ORDER[s] : -1;
+    const isDone    = sIdx < currentIdx;
+    const isCurrent = sIdx === currentIdx;
+    const dot=document.createElement('div');
+    dot.className='seed-flow-dot';
+    dot.textContent=counts[s]||0;
+    // STATUS_COLOR_MAP 컬러 적용
+    const sc = STATUS_COLOR_MAP[s]||{bg:'#F3F4F6',color:'#6B7280'};
+    if(isCurrent){
+      dot.style.cssText='background:'+sc.bg+';color:'+sc.color+';border:2px solid '+sc.color+';box-shadow:0 0 0 3px '+sc.bg+';';
+    } else if(isDone){
+      dot.style.cssText='background:var(--color-background-secondary);color:var(--color-text-tertiary);border:0.5px solid var(--color-border-secondary);';
+    } else {
+      dot.style.cssText='background:var(--color-background-secondary);color:var(--color-text-tertiary);border:0.5px dashed var(--color-border-tertiary);opacity:.5;';
+    }
+    const lbl=document.createElement('div');
+    lbl.className='seed-flow-label';
+    lbl.textContent=s;
+    if(isCurrent) lbl.style.cssText='font-size:9px;font-weight:600;color:'+sc.color+';';
+    step.appendChild(dot); step.appendChild(lbl);
     wrap.appendChild(step);
-    if(i<5){const arr=document.createElement('div');arr.className='seed-flow-arrow';arr.textContent='→';wrap.appendChild(arr);}
+    if(i<arr_.length-1){const a=document.createElement('div');a.className='seed-flow-arrow';a.textContent='→';wrap.appendChild(a);}
   });
 }
 function seedBuildTable(){
@@ -4846,10 +4958,27 @@ function seedBuildTable(){
     const rowOpacity = isRejected?'opacity:.35;filter:grayscale(.5);':'';
     const rowBg = isRejected?'background:#1a1a1a;color:#fff;':'';
 
+    // 채널 뱃지 (더블클릭 드롭다운)
+    const SEED_CH_OPTS=['Instagram','Youtube','Tiktok','X','Media','Offline'];
+    const SEED_CH_COLOR={Instagram:{bg:'#fce7f3',color:'#9d174d'},Youtube:{bg:'#fee2e2',color:'#991b1b'},Tiktok:{bg:'#f3f4f6',color:'#111827'},X:{bg:'#dbeafe',color:'#1e40af'},Media:{bg:'#ede9fe',color:'#5b21b6'},Offline:{bg:'#d1fae5',color:'#065f46'}};
+    const chc2 = SEED_CH_COLOR[r.ch]||{bg:'#f3f4f6',color:'#6b7280'};
+    const chBadge2 = `<span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:500;cursor:pointer;background:${chc2.bg};color:${chc2.color};">${r.ch||'선택'}</span>`;
+
+    // 컬러 자동추출 (상품명 괄호 안)
+    const autoColorSeed = (function(p){const m=(p||'').match(/\(([^)]+)\)$/);return m?m[1]:'';})(r.product);
+    if(!r.color && autoColorSeed) r.color = autoColorSeed;
+
+    // TAG: Item 탭에서 VLOOKUP
+    const tagFromItem = (function(productName){
+      const prod=(window.products||[]).find(p=>p.name===productName||p.code===productName);
+      if(!prod)return r.tag||'';
+      return [prod.tag1,prod.tag2,prod.tag3,prod.tag4,prod.tag5].filter(Boolean).join(', ');
+    })(r.product);
+
     return `<tr style="border-bottom:0.5px solid var(--color-border-tertiary);${rowOpacity}${rowBg}" id="seed-row-${ri}">
       ${editTd(r.name,'name',ri)}
       <td style="${tdS};color:#185FA5;" ondblclick="seedStartEdit(this.closest('td'),${ri},'id')">${r.id||'-'}</td>
-      ${editTd(r.ch,'ch',ri)}
+      <td style="${tdS}" ondblclick="seedDropdown(this,${ri},'ch',SEED_CH_OPTS,SEED_CH_COLOR)">${chBadge2}</td>
       ${editTd(fmtFollower(r.followers),'followers',ri)}
       ${statusCell}
       ${use2Cell}
@@ -4857,7 +4986,7 @@ function seedBuildTable(){
       ${editTd(r.product,'product',ri)}
       ${editTd(r.color,'color',ri)}
       ${editTd(r.size,'size',ri)}
-      <td style="${tdS};color:var(--color-text-secondary);">${tag}</td>
+      <td style="${tdS};color:var(--color-text-secondary);min-width:140px;">${tagFromItem}</td>
       ${editTd(r.realName,'realName',ri)}
       ${editTd(r.height,'height',ri)}
       ${editTd(r.weight,'weight',ri)}
@@ -5126,7 +5255,15 @@ function celebBuildTable(){
     const costFmt   = r.cost ? '₩'+Number(String(r.cost).replace(/[^0-9]/g,'')).toLocaleString('ko-KR') : '-';
 
     tr.appendChild(editTd(r.date,'date'));
-    tr.appendChild(dropTd(r.division,'division',DIV_OPTS,DIV_COLOR));
+    tr.appendChild((function(){
+      const td=document.createElement('td');
+      td.style.cssText=TD;
+      td.style.fontStyle=r.division?'normal':'italic';
+      td.style.color=r.division?'var(--color-text-primary)':'var(--color-text-tertiary)';
+      td.innerHTML=r.division||'직접 입력';
+      td.ondblclick=function(){celebInlineEdit(td,ri,'division');};
+      return td;
+    })());
     tr.appendChild((function(){const td=editTd(r.name,'name');td.style.fontWeight='600';return td;})());
     tr.appendChild(dropTd(r.exposureType,'exposureType',EXP_OPTS,EXP_COLOR));
     tr.appendChild((function(){const td=editTd(costFmt,'cost','text-align:right;font-family:monospace;');return td;})());
@@ -5735,6 +5872,88 @@ window.saveModal=saveModal;
 window.changeMonth=changeMonth;
 window.switchMain=switchMain;
 window.applyPromoFilter=applyPromoFilter;
+
+/* ── List 탭 채널/진행상태/2차활용 드롭다운 + 팔로워 K/M ── */
+const LIST_CH_COLOR={Instagram:{bg:'#fce7f3',color:'#9d174d'},Youtube:{bg:'#fee2e2',color:'#991b1b'},Tiktok:{bg:'#f3f4f6',color:'#111827'},X:{bg:'#dbeafe',color:'#1e40af'},Media:{bg:'#ede9fe',color:'#5b21b6'},Offline:{bg:'#d1fae5',color:'#065f46'}};
+const LIST_PROG_COLOR={'업로드 완료':{bg:'#185FA5',color:'#fff'},'스냅 완료':{bg:'#FFF7ED',color:'#9A3412'},'링크 취합 완료':{bg:'#EDE9FE',color:'#5B21B6'},'정산 완료':{bg:'#D1FAE5',color:'#065F46'},'DROP':{bg:'#FEE2E2',color:'#991B1B'}};
+const LIST_USE2_COLOR={'진행':{bg:'#DCFCE7',color:'#166534'},'미진행':{bg:'#F3F4F6',color:'#6B7280'},'사용 권한 없음':{bg:'#FEE2E2',color:'#991B1B'}};
+
+function listChBadge(ch){
+  const c=LIST_CH_COLOR[ch]||{bg:'#f3f4f6',color:'#6b7280'};
+  return '<span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:500;cursor:pointer;background:'+c.bg+';color:'+c.color+';">'+(ch||'선택')+'</span>';
+}
+function listProgressBadge(prog){
+  const c=LIST_PROG_COLOR[prog]||{bg:'#f3f4f6',color:'#6b7280'};
+  return '<span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:500;cursor:pointer;background:'+c.bg+';color:'+c.color+';">'+(prog||'-')+'</span>';
+}
+function listUse2Badge(use2){
+  const c=LIST_USE2_COLOR[use2]||{bg:'transparent',color:'var(--color-text-tertiary)'};
+  return '<span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:500;cursor:pointer;background:'+c.bg+';color:'+c.color+';">'+(use2||'-')+'</span>';
+}
+function fmtFollowers(v){
+  const n=parseInt(String(v||'').replace(/[^0-9]/g,''));
+  if(isNaN(n)||!n)return v||'-';
+  return n>=1e6?(n/1e6).toFixed(1).replace('.0','')+'M':n>=1e3?(n/1e3).toFixed(1).replace('.0','')+'K':String(n);
+}
+function listChDrop(td, ri){
+  const opts=['Instagram','Youtube','Tiktok','X','Media','Offline'];
+  seedDropdown(td, ri, 'ch', opts, LIST_CH_COLOR);
+  // seedDropdown은 seedData를 수정하므로 creators용으로 오버라이드
+  const origUpdate = window.seedUpdateField;
+  // creators 직접 수정
+  const origDD = window.seedDropdown;
+  closeSeedDropdown();
+  _ddActive=td;
+  const rect=td.getBoundingClientRect();
+  const popup=document.createElement('div');
+  popup.id='dd-popup';
+  popup.style.cssText='position:fixed;top:'+(rect.bottom+2)+'px;left:'+Math.min(rect.left,window.innerWidth-180)+'px;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:9999;padding:4px;min-width:130px;';
+  opts.forEach(opt=>{
+    const c=LIST_CH_COLOR[opt]||{};
+    const item=document.createElement('div');
+    item.style.cssText='padding:6px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:500;margin:2px 0;background:'+(c.bg||'var(--color-background-secondary)')+';color:'+(c.color||'var(--color-text-primary)')+';';
+    item.textContent=opt;
+    item.onclick=()=>{
+      window.creators[ri].ch=opt;
+      window.fbSaveCreators&&window.fbSaveCreators();
+      window.buildCal&&window.buildCal();
+      closeSeedDropdown();
+      window.applyListFilter&&window.applyListFilter();
+    };
+    popup.appendChild(item);
+  });
+  document.body.appendChild(popup);
+  setTimeout(()=>document.addEventListener('mousedown',ddOutsideClick),50);
+}
+window.listChDrop=listChDrop;
+
+function listProgressDrop(td, ri){
+  const opts=['업로드 완료','스냅 완료','링크 취합 완료','정산 완료','DROP'];
+  closeSeedDropdown();
+  _ddActive=td;
+  const rect=td.getBoundingClientRect();
+  const popup=document.createElement('div');
+  popup.id='dd-popup';
+  popup.style.cssText='position:fixed;top:'+(rect.bottom+2)+'px;left:'+Math.min(rect.left,window.innerWidth-200)+'px;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:9999;padding:4px;min-width:150px;';
+  opts.forEach(opt=>{
+    const c=LIST_PROG_COLOR[opt]||{};
+    const item=document.createElement('div');
+    item.style.cssText='padding:6px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:500;margin:2px 0;background:'+(c.bg||'var(--color-background-secondary)')+';color:'+(c.color||'var(--color-text-primary)')+';';
+    item.textContent=opt;
+    item.onclick=()=>{
+      window.creators[ri].progress=opt;
+      window.fbSaveCreators&&window.fbSaveCreators();
+      window.buildCal&&window.buildCal();
+      closeSeedDropdown();
+      window.applyListFilter&&window.applyListFilter();
+    };
+    popup.appendChild(item);
+  });
+  document.body.appendChild(popup);
+  setTimeout(()=>document.addEventListener('mousedown',ddOutsideClick),50);
+}
+window.listProgressDrop=listProgressDrop;
+
 window.applyListFilter=applyListFilter;
 window.applyFeedbackFilter=applyFeedbackFilter;
 window.fbEditUploadLink=fbEditUploadLink;
