@@ -951,10 +951,7 @@ td.dc-td{padding:0!important;vertical-align:middle;}
 <!-- LIST -->
 <div id="pg-list" style="display:none;">
   <div class="filter-row" style="margin-bottom:6px;" id="lf-row"></div>
-  <div class="filter-row" style="margin-bottom:10px;">
-    <input type="text" id="lf-name" placeholder="크리에이터 검색..." oninput="applyListFilter()" style="flex:none;width:200px;">
-  </div>
-  <button class="add-btn" onclick="addCreator()">+ 크리에이터 추가</button>
+  <button class="add-btn" onclick="addCreator()" style="margin-bottom:10px;">+ 크리에이터 추가</button>
   <div class="tbl-wrap" style="overflow-x:auto;"><table style="table-layout:auto;width:100%;"><thead><tr>
     <th class="col-sticky" style="left:0;min-width:110px;z-index:3;">크리에이터</th>
     <th class="col-sticky" style="left:110px;min-width:110px;z-index:3;">ID</th>
@@ -1102,8 +1099,8 @@ td.dc-td{padding:0!important;vertical-align:middle;}
     <div style="overflow-x:auto;">
       <table style="width:100%;border-collapse:collapse;font-size:11px;white-space:nowrap;">
         <thead><tr style="background:var(--color-background-secondary);">
-<th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">이름</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">ID</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">채널</th><th style="padding:6px 8px;text-align:right;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">팔로워</th><th style="padding:6px 8px;text-align:center;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">상태</th><th style="padding:6px 8px;text-align:center;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">2차활용</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">업로드일</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">상품</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">컬러</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">사이즈</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">TAG</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">실명</th><th style="padding:6px 8px;text-align:right;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">키</th><th style="padding:6px 8px;text-align:right;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">몸무게</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">연락처</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">우편번호</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;min-width:140px;">주소</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">운송장번호</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">폴더명</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">이미지경로</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;min-width:120px;">비고</th><th style="padding:6px 8px;font-weight:500;color:var(--color-text-tertiary);font-size:10px;"></th>
-        </tr></thead>
+<th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">이름</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">ID</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">채널</th><th style="padding:6px 8px;text-align:right;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">팔로워</th><th style="padding:6px 8px;text-align:center;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;min-width:56px;">적합도</th><th style="padding:6px 8px;text-align:center;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;min-width:56px;">스타일</th><th style="padding:6px 8px;text-align:center;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;min-width:56px;">무드</th><th style="padding:6px 8px;text-align:center;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;min-width:56px;">관계성</th><th style="padding:6px 8px;text-align:center;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;min-width:64px;">진행 여부</th><th style="padding:6px 8px;text-align:center;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">상태</th><th style="padding:6px 8px;text-align:center;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">2차활용</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">업로드일</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">상품</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">컬러</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">사이즈</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;min-width:140px;">TAG</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">실명</th><th style="padding:6px 8px;text-align:right;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">키</th><th style="padding:6px 8px;text-align:right;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">몸무게</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">연락처</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">우편번호</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;min-width:140px;">주소</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">운송장번호</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">폴더명</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;">이미지경로</th><th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--color-text-tertiary);font-size:10px;white-space:nowrap;min-width:120px;">비고</th><th style="padding:6px 8px;font-weight:500;color:var(--color-text-tertiary);font-size:10px;"></th>
+</tr></thead>
         <tbody id="seed-tbody"></tbody>
       </table>
     </div>
@@ -1552,6 +1549,18 @@ const PLTS=['무신사','29CM','자사몰'];
 const CHS=['Instagram','Youtube','Tiktok','X'];
 
 /* ══ Seeding 상태 전역 상수 ══ */
+
+/* ── Seeding 채널 전역 상수 ── */
+const SEED_CH_OPTS = ['Instagram','Youtube','Tiktok','X','Media','Offline'];
+const SEED_CH_COLOR = {
+  Instagram:{bg:'#fce7f3',color:'#9d174d'},
+  Youtube:  {bg:'#fee2e2',color:'#991b1b'},
+  Tiktok:   {bg:'#f3f4f6',color:'#111827'},
+  X:        {bg:'#dbeafe',color:'#1e40af'},
+  Media:    {bg:'#ede9fe',color:'#5b21b6'},
+  Offline:  {bg:'#d1fae5',color:'#065f46'},
+};
+
 const STATUS_OPTS = ['리스트업','컨택','회신','거절','취합','발송','업로드','스냅'];
 const STATUS_COLOR_MAP = {
   '리스트업': {bg:'#F3F4F6',color:'#6B7280',border:'#D1D5DB'},
@@ -1970,19 +1979,15 @@ function addCreator(){
     items:[], _order:window.creators.length
   });
   if(window.fbSaveCreators) window.fbSaveCreators();
-  // 필터 초기화 후 렌더
-  const monthSel = document.getElementById('lf-month');
-  const chSel    = document.getElementById('lf-ch');
-  if(monthSel) monthSel.value = '0';
-  if(chSel)    chSel.value    = '0';
-  if(window.applyListFilter) window.applyListFilter();
+  // 필터 없이 전체 렌더
+  if(window.renderCreatorRows) window.renderCreatorRows(window.creators);
   // 마지막 행 스크롤
   setTimeout(()=>{
     const body = document.getElementById('creator-body');
     if(body && body.lastElementChild) {
       body.lastElementChild.scrollIntoView({behavior:'smooth', block:'nearest'});
     }
-  }, 100);
+  }, 150);
 }
 
 /* ══ FEEDBACK ══ */
@@ -4958,9 +4963,7 @@ function seedBuildTable(){
     const rowOpacity = isRejected?'opacity:.35;filter:grayscale(.5);':'';
     const rowBg = isRejected?'background:#1a1a1a;color:#fff;':'';
 
-    // 채널 뱃지 (더블클릭 드롭다운)
-    const SEED_CH_OPTS=['Instagram','Youtube','Tiktok','X','Media','Offline'];
-    const SEED_CH_COLOR={Instagram:{bg:'#fce7f3',color:'#9d174d'},Youtube:{bg:'#fee2e2',color:'#991b1b'},Tiktok:{bg:'#f3f4f6',color:'#111827'},X:{bg:'#dbeafe',color:'#1e40af'},Media:{bg:'#ede9fe',color:'#5b21b6'},Offline:{bg:'#d1fae5',color:'#065f46'}};
+    // 채널 뱃지 (더블클릭 드롭다운) - 전역 상수 참조
     const chc2 = SEED_CH_COLOR[r.ch]||{bg:'#f3f4f6',color:'#6b7280'};
     const chBadge2 = `<span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:500;cursor:pointer;background:${chc2.bg};color:${chc2.color};">${r.ch||'선택'}</span>`;
 
@@ -4975,11 +4978,22 @@ function seedBuildTable(){
       return [prod.tag1,prod.tag2,prod.tag3,prod.tag4,prod.tag5].filter(Boolean).join(', ');
     })(r.product);
 
+    // 별점 합산 및 진행여부
+    const totalStars=(parseInt(r.fit)||0)+(parseInt(r.style)||0)+(parseInt(r.mood)||0)+(parseInt(r.relation)||0);
+    const goCell=totalStars>=9
+      ?'<td style="'+tdS+';text-align:center;"><span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600;background:#dcfce7;color:#166534;">진행</span></td>'
+      :'<td style="'+tdS+';text-align:center;color:var(--color-text-tertiary);font-size:10px;">'+(totalStars>0?totalStars+'점':'-')+'</td>';
+
     return `<tr style="border-bottom:0.5px solid var(--color-border-tertiary);${rowOpacity}${rowBg}" id="seed-row-${ri}">
       ${editTd(r.name,'name',ri)}
       <td style="${tdS};color:#185FA5;" ondblclick="seedStartEdit(this.closest('td'),${ri},'id')">${r.id||'-'}</td>
       <td style="${tdS}" ondblclick="seedDropdown(this,${ri},'ch',SEED_CH_OPTS,SEED_CH_COLOR)">${chBadge2}</td>
       ${editTd(fmtFollower(r.followers),'followers',ri)}
+      ${starCell('fit',ri)}
+      ${starCell('style',ri)}
+      ${starCell('mood',ri)}
+      ${starCell('relation',ri)}
+      ${goCell}
       ${statusCell}
       ${use2Cell}
       ${editTd(r.uploadDate,'uploadDate',ri,'date')}
@@ -5136,6 +5150,11 @@ function seedSaveEdit(ri, field, value) {
     else row.followers = parseInt(v)||value;
   } else {
     row[field] = value;
+    // 상품 변경 시 컬러 자동추출 (괄호 안 텍스트)
+    if(field==='product' && value){
+      const m=value.match(/\(([^)]+)\)$/);
+      if(m && !row.color) row.color = m[1];
+    }
   }
   if(window.fbSaveBatch) window.fbSaveBatch('seeding', window.seedData);
   seedBuildTable();
@@ -5159,6 +5178,43 @@ function seedUpdateField(ri, field, value) {
   if(field==='status') seedUpdateFlow(); // 플로우 차트 업데이트
 }
 window.seedUpdateField = seedUpdateField;
+
+
+/* ── Seeding 별점 ── */
+function seedSetStar(ri, field, val){
+  const filtered=(window.seedData||[]).filter(r=>{
+    if(_seedStatus!=='all'&&r.status!==_seedStatus)return false;
+    if(_seedCh!=='all'&&r.ch!==_seedCh)return false;
+    if(_seedMonth!=='all'&&r.uploadDate&&!r.uploadDate.startsWith(_seedMonth))return false;
+    return true;
+  });
+  const row=filtered[ri]; if(!row)return;
+  // 같은 값 클릭하면 0으로 초기화
+  row[field] = (parseInt(row[field])||0)===val ? 0 : val;
+  if(window.fbSaveBatch) window.fbSaveBatch('seeding', window.seedData);
+  seedBuildTable();
+}
+window.seedSetStar=seedSetStar;
+
+function seedHoverStar(el, n, cur){
+  const parent=el.parentElement;
+  if(!parent)return;
+  parent.querySelectorAll('span').forEach((s,i)=>{
+    s.style.color = (i+1)<=n ? '#f59e0b' : '#d1d5db';
+    s.textContent = (i+1)<=n ? '★' : '☆';
+  });
+}
+window.seedHoverStar=seedHoverStar;
+
+function seedResetStar(parent, cur){
+  if(!parent)return;
+  parent.querySelectorAll('span').forEach((s,i)=>{
+    const filled=(i+1)<=cur;
+    s.style.color=filled?'#f59e0b':'#d1d5db';
+    s.textContent=filled?'★':'☆';
+  });
+}
+window.seedResetStar=seedResetStar;
 
 window.seedAddRow=seedAddRow; window.seedEdit=seedEdit; window.seedDel=seedDel;
 
