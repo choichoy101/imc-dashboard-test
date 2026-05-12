@@ -1578,6 +1578,46 @@ const USE2_COLOR = {
   '미진행': {bg:'#F3F4F6',color:'#6B7280'},
 };
 
+
+/* ── List 탭 전역 상수 (renderCreatorRows에서 사용) ── */
+const LIST_CH_COLOR={
+  Instagram:{bg:'#fce7f3',color:'#9d174d'},
+  Youtube:  {bg:'#fee2e2',color:'#991b1b'},
+  Tiktok:   {bg:'#f3f4f6',color:'#111827'},
+  X:        {bg:'#dbeafe',color:'#1e40af'},
+  Media:    {bg:'#ede9fe',color:'#5b21b6'},
+  Offline:  {bg:'#d1fae5',color:'#065f46'},
+};
+const LIST_PROG_COLOR={
+  '업로드 완료':   {bg:'#185FA5',color:'#fff'},
+  '스냅 완료':     {bg:'#FFF7ED',color:'#9A3412'},
+  '링크 취합 완료':{bg:'#EDE9FE',color:'#5B21B6'},
+  '정산 완료':     {bg:'#D1FAE5',color:'#065F46'},
+  'DROP':          {bg:'#FEE2E2',color:'#991B1B'},
+};
+const LIST_USE2_COLOR={
+  '진행':       {bg:'#DCFCE7',color:'#166534'},
+  '미진행':     {bg:'#F3F4F6',color:'#6B7280'},
+  '사용 권한 없음':{bg:'#FEE2E2',color:'#991B1B'},
+};
+function listChBadge(ch){
+  const c=LIST_CH_COLOR[ch]||{bg:'#f3f4f6',color:'#6b7280'};
+  return '<span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:500;cursor:pointer;background:'+c.bg+';color:'+c.color+';">'+(ch||'선택')+'</span>';
+}
+function listProgressBadge(prog){
+  const c=LIST_PROG_COLOR[prog]||{bg:'#f3f4f6',color:'#6b7280'};
+  return '<span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:500;cursor:pointer;background:'+c.bg+';color:'+c.color+';">'+(prog||'-')+'</span>';
+}
+function listUse2Badge(use2){
+  const c=LIST_USE2_COLOR[use2]||{bg:'transparent',color:'var(--color-text-tertiary)'};
+  return '<span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:500;cursor:pointer;background:'+c.bg+';color:'+c.color+';">'+(use2||'-')+'</span>';
+}
+function fmtFollowers(v){
+  const n=parseInt(String(v||'').replace(/[^0-9]/g,''));
+  if(isNaN(n)||!n)return v||'-';
+  return n>=1e6?(n/1e6).toFixed(1).replace('.0','')+'M':n>=1e3?(n/1e3).toFixed(1).replace('.0','')+'K':String(n);
+}
+
 // Budget 탭 컬럼 구조
 // 대행사(2) + Meta(4) + 나머지(5) = 11컬럼
 const BROWS_GROUP_DEF = [
@@ -4989,10 +5029,10 @@ function seedBuildTable(){
       <td style="${tdS};color:#185FA5;" ondblclick="seedStartEdit(this.closest('td'),${ri},'id')">${r.id||'-'}</td>
       <td style="${tdS}" ondblclick="seedDropdown(this,${ri},'ch',SEED_CH_OPTS,SEED_CH_COLOR)">${chBadge2}</td>
       ${editTd(fmtFollower(r.followers),'followers',ri)}
-      ${starCell('fit',ri)}
-      ${starCell('style',ri)}
-      ${starCell('mood',ri)}
-      ${starCell('relation',ri)}
+      ${starCell('fit',ri,r,tdS)}
+      ${starCell('style',ri,r,tdS)}
+      ${starCell('mood',ri,r,tdS)}
+      ${starCell('relation',ri,r,tdS)}
       ${goCell}
       ${statusCell}
       ${use2Cell}
@@ -5194,6 +5234,22 @@ function seedSetStar(ri, field, val){
   if(window.fbSaveBatch) window.fbSaveBatch('seeding', window.seedData);
   seedBuildTable();
 }
+
+/* ── Seeding 별점 셀 렌더 (전역) ── */
+function starCell(field, ri, r, tdS) {
+  const val = parseInt(r[field]) || 0;
+  const stars = [1,2,3,4].map(n => {
+    const filled = n <= val;
+    return '<span style="cursor:pointer;font-size:14px;color:'+(filled?'#f59e0b':'#d1d5db')+'" '
+      +'onclick="seedSetStar('+ri+',\''+field+'\','+n+')" '
+      +'onmouseover="seedHoverStar(this,'+n+','+val+')" '
+      +'onmouseout="seedResetStar(this.parentElement,'+val+')">'
+      +(filled?'★':'☆')+'</span>';
+  }).join('');
+  return '<td style="'+tdS+';text-align:center;white-space:nowrap;">'+stars+'</td>';
+}
+window.starCell = starCell;
+
 window.seedSetStar=seedSetStar;
 
 function seedHoverStar(el, n, cur){
@@ -5928,88 +5984,6 @@ window.saveModal=saveModal;
 window.changeMonth=changeMonth;
 window.switchMain=switchMain;
 window.applyPromoFilter=applyPromoFilter;
-
-/* ── List 탭 채널/진행상태/2차활용 드롭다운 + 팔로워 K/M ── */
-const LIST_CH_COLOR={Instagram:{bg:'#fce7f3',color:'#9d174d'},Youtube:{bg:'#fee2e2',color:'#991b1b'},Tiktok:{bg:'#f3f4f6',color:'#111827'},X:{bg:'#dbeafe',color:'#1e40af'},Media:{bg:'#ede9fe',color:'#5b21b6'},Offline:{bg:'#d1fae5',color:'#065f46'}};
-const LIST_PROG_COLOR={'업로드 완료':{bg:'#185FA5',color:'#fff'},'스냅 완료':{bg:'#FFF7ED',color:'#9A3412'},'링크 취합 완료':{bg:'#EDE9FE',color:'#5B21B6'},'정산 완료':{bg:'#D1FAE5',color:'#065F46'},'DROP':{bg:'#FEE2E2',color:'#991B1B'}};
-const LIST_USE2_COLOR={'진행':{bg:'#DCFCE7',color:'#166534'},'미진행':{bg:'#F3F4F6',color:'#6B7280'},'사용 권한 없음':{bg:'#FEE2E2',color:'#991B1B'}};
-
-function listChBadge(ch){
-  const c=LIST_CH_COLOR[ch]||{bg:'#f3f4f6',color:'#6b7280'};
-  return '<span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:500;cursor:pointer;background:'+c.bg+';color:'+c.color+';">'+(ch||'선택')+'</span>';
-}
-function listProgressBadge(prog){
-  const c=LIST_PROG_COLOR[prog]||{bg:'#f3f4f6',color:'#6b7280'};
-  return '<span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:500;cursor:pointer;background:'+c.bg+';color:'+c.color+';">'+(prog||'-')+'</span>';
-}
-function listUse2Badge(use2){
-  const c=LIST_USE2_COLOR[use2]||{bg:'transparent',color:'var(--color-text-tertiary)'};
-  return '<span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:500;cursor:pointer;background:'+c.bg+';color:'+c.color+';">'+(use2||'-')+'</span>';
-}
-function fmtFollowers(v){
-  const n=parseInt(String(v||'').replace(/[^0-9]/g,''));
-  if(isNaN(n)||!n)return v||'-';
-  return n>=1e6?(n/1e6).toFixed(1).replace('.0','')+'M':n>=1e3?(n/1e3).toFixed(1).replace('.0','')+'K':String(n);
-}
-function listChDrop(td, ri){
-  const opts=['Instagram','Youtube','Tiktok','X','Media','Offline'];
-  seedDropdown(td, ri, 'ch', opts, LIST_CH_COLOR);
-  // seedDropdown은 seedData를 수정하므로 creators용으로 오버라이드
-  const origUpdate = window.seedUpdateField;
-  // creators 직접 수정
-  const origDD = window.seedDropdown;
-  closeSeedDropdown();
-  _ddActive=td;
-  const rect=td.getBoundingClientRect();
-  const popup=document.createElement('div');
-  popup.id='dd-popup';
-  popup.style.cssText='position:fixed;top:'+(rect.bottom+2)+'px;left:'+Math.min(rect.left,window.innerWidth-180)+'px;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:9999;padding:4px;min-width:130px;';
-  opts.forEach(opt=>{
-    const c=LIST_CH_COLOR[opt]||{};
-    const item=document.createElement('div');
-    item.style.cssText='padding:6px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:500;margin:2px 0;background:'+(c.bg||'var(--color-background-secondary)')+';color:'+(c.color||'var(--color-text-primary)')+';';
-    item.textContent=opt;
-    item.onclick=()=>{
-      window.creators[ri].ch=opt;
-      window.fbSaveCreators&&window.fbSaveCreators();
-      window.buildCal&&window.buildCal();
-      closeSeedDropdown();
-      window.applyListFilter&&window.applyListFilter();
-    };
-    popup.appendChild(item);
-  });
-  document.body.appendChild(popup);
-  setTimeout(()=>document.addEventListener('mousedown',ddOutsideClick),50);
-}
-window.listChDrop=listChDrop;
-
-function listProgressDrop(td, ri){
-  const opts=['업로드 완료','스냅 완료','링크 취합 완료','정산 완료','DROP'];
-  closeSeedDropdown();
-  _ddActive=td;
-  const rect=td.getBoundingClientRect();
-  const popup=document.createElement('div');
-  popup.id='dd-popup';
-  popup.style.cssText='position:fixed;top:'+(rect.bottom+2)+'px;left:'+Math.min(rect.left,window.innerWidth-200)+'px;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:9999;padding:4px;min-width:150px;';
-  opts.forEach(opt=>{
-    const c=LIST_PROG_COLOR[opt]||{};
-    const item=document.createElement('div');
-    item.style.cssText='padding:6px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:500;margin:2px 0;background:'+(c.bg||'var(--color-background-secondary)')+';color:'+(c.color||'var(--color-text-primary)')+';';
-    item.textContent=opt;
-    item.onclick=()=>{
-      window.creators[ri].progress=opt;
-      window.fbSaveCreators&&window.fbSaveCreators();
-      window.buildCal&&window.buildCal();
-      closeSeedDropdown();
-      window.applyListFilter&&window.applyListFilter();
-    };
-    popup.appendChild(item);
-  });
-  document.body.appendChild(popup);
-  setTimeout(()=>document.addEventListener('mousedown',ddOutsideClick),50);
-}
-window.listProgressDrop=listProgressDrop;
-
 window.applyListFilter=applyListFilter;
 window.applyFeedbackFilter=applyFeedbackFilter;
 window.fbEditUploadLink=fbEditUploadLink;
