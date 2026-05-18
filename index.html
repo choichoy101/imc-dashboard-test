@@ -59,13 +59,18 @@
 
   // ── Firestore CRUD 함수 (window에 노출) ──
   window.fbSave = async function(collName, id, data) {
-    if (!isFirebaseReady) return;
-    try { await db.collection(collName).doc(id).set(data); }
-    catch(e) { console.error('fbSave 오류:', e); }
+    if (!isFirebaseReady) throw new Error('Firebase가 아직 준비되지 않았습니다.');
+    try {
+      await db.collection(collName).doc(String(id)).set(data || {});
+      return true;
+    } catch(e) {
+      console.error('fbSave 오류:', e);
+      throw e;
+    }
   };
 
   window.fbSaveSheetUrls = async function() {
-    if (!isFirebaseReady) return;
+    if (!isFirebaseReady) throw new Error('Firebase가 아직 준비되지 않았습니다.');
     try {
       const urls = {
         itemSheetUrl:      window.itemSheetUrl || '',
@@ -74,17 +79,26 @@
         metaUrlSales:      window.metaSheetUrlSales || '',
       };
       await db.collection('settings').doc('sheetUrls').set(urls);
-    } catch(e) { console.error('시트 URL 저장 실패:', e); }
+      return true;
+    } catch(e) {
+      console.error('시트 URL 저장 실패:', e);
+      throw e;
+    }
   };
 
   window.fbDelete = async function(collName, id) {
-    if (!isFirebaseReady) return;
-    try { await db.collection(collName).doc(id).delete(); }
-    catch(e) { console.error('fbDelete 오류:', e); }
+    if (!isFirebaseReady) throw new Error('Firebase가 아직 준비되지 않았습니다.');
+    try {
+      await db.collection(collName).doc(String(id)).delete();
+      return true;
+    } catch(e) {
+      console.error('fbDelete 오류:', e);
+      throw e;
+    }
   };
 
   window.fbSaveBatch = async function(collName, items) {
-    if (!isFirebaseReady) return;
+    if (!isFirebaseReady) throw new Error('Firebase가 아직 준비되지 않았습니다.');
     try {
       items = Array.isArray(items) ? items : [];
       const existing = await db.collection(collName).get();
@@ -98,7 +112,11 @@
         batch.set(db.collection(collName).doc(String(id)), safeItem);
       });
       await batch.commit();
-    } catch(e) { console.error('fbSaveBatch 오류:', e); }
+      return true;
+    } catch(e) {
+      console.error('fbSaveBatch 오류:', collName, e);
+      throw e;
+    }
   };
 
   window.fbLoadAll = async function(collName) {
@@ -115,17 +133,25 @@
   };
 
   window.fbSaveBudget = async function(mi, values) {
-    if (!isFirebaseReady) return;
+    if (!isFirebaseReady) throw new Error('Firebase가 아직 준비되지 않았습니다.');
     try {
       await db.collection('budgets').doc(String(mi)).set({ values });
-    } catch(e) { console.error('예산 저장 실패:', e); }
+      return true;
+    } catch(e) {
+      console.error('예산 저장 실패:', e);
+      throw e;
+    }
   };
 
   window.fbSaveSettingDoc = async function(id, data) {
-    if (!isFirebaseReady) return;
+    if (!isFirebaseReady) throw new Error('Firebase가 아직 준비되지 않았습니다.');
     try {
       await db.collection('settings').doc(String(id)).set(data || {});
-    } catch(e) { console.error('설정 저장 실패:', id, e); }
+      return true;
+    } catch(e) {
+      console.error('설정 저장 실패:', id, e);
+      throw e;
+    }
   };
 
   window.fbSaveAllDashboard = async function() {
@@ -210,6 +236,15 @@
         });
       }
 
+      window.__fbHadData = {
+        promos: !!promosSnap.docs.length,
+        creators: !!creatorsSnap.docs.length,
+        products: !!productsSnap.docs.length,
+        seeding: !!seedingSnap.docs.length,
+        celebs: !!celebsSnap.docs.length,
+        organic: !!organicSnap.docs.length
+      };
+
       const hasAnyFirebaseData =
         promosSnap.docs.length || creatorsSnap.docs.length || productsSnap.docs.length ||
         seedingSnap.docs.length || celebsSnap.docs.length || organicSnap.docs.length ||
@@ -242,33 +277,46 @@
     if (!isFirebaseReady) return;
     const byOrder = (a,b)=>(a._order||0)-(b._order||0);
     const toRows = snap => snap.docs.map(d => ({_id: d.id, ...d.data()})).sort(byOrder);
+    const shouldSkipEmptyFirstSnapshot = (collName, localName, snap) => {
+      return snap.empty &&
+        window.__fbHadData &&
+        window.__fbHadData[collName] === false &&
+        Array.isArray(window[localName]) &&
+        window[localName].length > 0;
+    };
 
     db.collection('creators').onSnapshot(snap => {
+      if (shouldSkipEmptyFirstSnapshot('creators', 'creators', snap)) return;
       window.creators = toRows(snap);
       if (window.applyListFilter) window.applyListFilter();
       if (window.buildCal) window.buildCal();
       if (window.applyFeedbackFilter) window.applyFeedbackFilter();
     });
     db.collection('promos').onSnapshot(snap => {
+      if (shouldSkipEmptyFirstSnapshot('promos', 'promos', snap)) return;
       window.promos = toRows(snap);
       if (window.applyPromoFilter) window.applyPromoFilter();
       if (window.buildCal) window.buildCal();
     });
     db.collection('products').onSnapshot(snap => {
+      if (shouldSkipEmptyFirstSnapshot('products', 'products', snap)) return;
       window.products = toRows(snap);
       if (window.renderModalItems) window.renderModalItems();
       if (window.applyFeedbackFilter) window.applyFeedbackFilter();
     });
     db.collection('seeding').onSnapshot(snap => {
+      if (shouldSkipEmptyFirstSnapshot('seeding', 'seedData', snap)) return;
       window.seedData = toRows(snap);
       if (window.seedRender) window.seedRender();
     });
     db.collection('celebs').onSnapshot(snap => {
+      if (shouldSkipEmptyFirstSnapshot('celebs', 'celebData', snap)) return;
       window.celebData = toRows(snap);
       if (window.celebRender) window.celebRender();
       if (window.buildCal) window.buildCal();
     });
     db.collection('organic').onSnapshot(snap => {
+      if (shouldSkipEmptyFirstSnapshot('organic', 'organicData', snap)) return;
       window.organicData = toRows(snap);
       if (window.orgRender) window.orgRender();
     });
@@ -3441,13 +3489,22 @@ function fbSaveBudgetRow(mi){
 }
 async function fbSaveAllDashboardNow(){
   showSaving();
-  const ok = await (window.fbSaveAllDashboard ? window.fbSaveAllDashboard() : Promise.resolve(false));
+  let ok = false;
+  let message = '';
+  try {
+    ok = await (window.fbSaveAllDashboard ? window.fbSaveAllDashboard() : Promise.resolve(false));
+  } catch(e) {
+    ok = false;
+    message = e && e.message ? e.message : String(e);
+    console.error('Firebase 저장 버튼 오류:', e);
+  }
   const badge = document.getElementById('saving-badge');
   if(badge){
-    badge.textContent = ok ? '✅ Firebase 저장 완료!' : '⚠️ Firebase 미연결';
+    badge.textContent = ok ? '✅ Firebase 저장 완료!' : ('⚠️ Firebase 저장 실패' + (message ? ': ' + message : ''));
     badge.classList.add('show');
-    setTimeout(()=>{ badge.classList.remove('show'); badge.textContent='저장 중...'; }, 2000);
+    setTimeout(()=>{ badge.classList.remove('show'); badge.textContent='저장 중...'; }, 3500);
   }
+  if(!ok && message) alert('Firebase 저장 실패:\n' + message);
   return ok;
 }
 
